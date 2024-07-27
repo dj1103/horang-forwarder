@@ -46,7 +46,7 @@ The interval is optional. An interval of 10 seconds is recommended for the data 
 
 ## [License and Copyright]
 
-The Horangi log forwarder is Copyright 2024 D Jang and licensed under the MIT License. See 'LICENSE.txt' for the terms of its release.
+The Horangi log forwarder is Copyright 2024 D Jang and licensed under the MIT License. See 'LICENSE' for the terms of its release.
 
 Copyright (c) 2024 D Jang
 
