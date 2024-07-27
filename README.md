@@ -43,4 +43,11 @@ The interval is optional. An interval of 10 seconds is recommended for the data 
              Ex. "curl -X POST "[ELASTIC HOST IP]:9200/?[INDEX]" 
         2. different SIEM ingestion
         3. different Log forwarding (ex. syslog)
+
+## [License and Copyright]
+
+The Horangi log forwarder is Copyright 2024 D Jang and licensed under the MIT License. See 'LICENSE.txt' for the terms of its release.
+
+Copyright (c) 2024 D Jang
+
              
