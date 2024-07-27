@@ -1,1 +1,18 @@
 # Horangi-Forwarder
+
+[Description]
+This horangi forwarder is a log forwarder to inspect multiple subdirectories within a designated main directory for files. The script should load files with appended data and verify if the files have already been loaded before proceeding to the next file.
+
+Test Version! Please don't use it for the production environment.
+
+[USAGE]
+ ''' python3 logforwarder.py <directory> [<interval>] '''
+  Ex. python3 horangi_forwarder.py /nsm/zeek/
+  Ex. python3 horangi_logforwarder.py c:\users\myaccount\Desktop\zeek\
+  A desinated main directory is the folder with multiple subdirectories and files.
+  The interval is optional. An interval of 10 seconds is recommended for the data ingestion rate.
+
+[Future]
+  1. Elastic API to load JSONs to the destination Elasticsearch DB
+  Dependency: python -m pip install elasticsearch
+  2. File validation
