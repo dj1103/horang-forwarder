@@ -13,7 +13,7 @@ The interval is optional. An interval of 10 seconds is recommended for the data 
 
     python3 logforwarder.py \<directory> \[\<interval\>\]
     Ex. python3 horangi_forwarder.py /nsm/zeek/
-    Ex. python3 horangi_logforwarder.py c:\users\myaccount\Desktop\zeek\
+    Ex. python3 horangi_forwarder.py c:\users\myaccount\Desktop\zeek\
 
 ## [Future]
 
