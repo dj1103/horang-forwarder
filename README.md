@@ -1,12 +1,21 @@
 # Horangi-Forwarder
 
-## [Description]
+## Description
 
 This horangi forwarder is a log forwarder to inspect multiple subdirectories within a designated main directory for files. The script should load files with appended data and verify if the files have already been loaded before proceeding to the next file.
 
      Note: Test Version! Please don't use it for the production environment.
 
-## [Usage]
+## Version
+
+Testing with Python 3.12, published on 2023-10-02, expires on 2028-10, PEP 693
+     https://www.python.org/downloads/
+
+## Dependency
+
+     python3 -m pip install
+
+## Usage
 
 A designated main directory is the folder with multiple subdirectories and files.
 The interval is optional. An interval of 10 seconds is recommended for the data ingestion rate.
@@ -15,7 +24,7 @@ The interval is optional. An interval of 10 seconds is recommended for the data 
     Ex. python3 horangi_forwarder.py /nsm/zeek/
     Ex. python3 horangi_forwarder.py c:\users\myaccount\Desktop\zeek\
 
-## [Future]
+## Future
 
 1. Elastic API to load JSONs to the destination Elasticsearch DB
 
@@ -44,10 +53,12 @@ The interval is optional. An interval of 10 seconds is recommended for the data 
         2. different SIEM ingestion
         3. different Log forwarding (ex. syslog)
 
-## [License and Copyright]
+## License and Copyright
 
 The Horangi log forwarder is Copyright 2024 D Jang and licensed under the MIT License. See 'LICENSE' for the terms of its release.
 
+https://opensource.org/license/mit
+
 Copyright (c) 2024 D Jang
 
-             
+If you are interested in including this in your project, please feel free to contact me.
