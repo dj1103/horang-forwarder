@@ -30,7 +30,7 @@
 
 
 from elasticsearch import Elasticsearch as elk_db
-
+import os
 
 def validate_json(json_str):
     """
@@ -91,8 +91,8 @@ def connect_elk_db():
     """
     ret_val = None
     # HTTPS or HTTP
-    option = input("Please choose the option to connect the Elastic DB:\
-                   1: non-secure mode - HTTP (non-production or testing)\
+    option = input("Please choose the option to connect the Elastic DB:\n\
+                   1: non-secure mode - HTTP (non-production or testing)\n\
                    2: secure mode - HTTPS and authentication (production)")
     # ip and port holders
     ip = input("Please provide the IP address of the DB - default:localhost")
@@ -113,10 +113,10 @@ def connect_elk_db():
     elif option == "2":
         # secure mode
         https_connect = f'https://{ip}:{port}'
-        option = input("Please choose the option to connect the Elastic DB:\
-                        1: Basic Authentication - Username and Password\
+        option = input("Please choose the option to connect the Elastic DB:\n\
+                        1: Basic Authentication - Username and Password\n\
                         2: API Authentication - API Key")
-        ca_path = input("Please provide the CA path - HTTPS certification\
+        ca_path = input("Please provide the CA path - HTTPS certification\n\
                          Ex. the root CA certificate can be found in certs/https_ca.crt")
         # default path
         if ca_path == "":
@@ -152,43 +152,31 @@ def connect_elk_db():
     return ret_val
 
 
-def load_json(client=None, index_name="default", id_num=0, json_val=[]):
+def load_json(client=None, json_val=[], index_name="default"):
     """
         load json string or list to Elk DB
 
     Args:
         client (_obj_): Elasticsearch instance
-        index_name (_str_): index name
-        id_num (_int_): index number for searching the doc
         json_val (_str or list_): _load the JSON to Elk DB_
-    
-    Returns:
-        _bool_: _if it successfully loades, then return true
-    """
+        index_name (_str_): index name
 
+    """
     if client == None:
+        print("No connection to the SIEM...... Please press ctrl-c")
         return
 
     # string ops
     if isinstance(json_val, str):
         if validate_json(json_val):
-            # id wasn't provided, let elasticsearch select the id
-            if id == 0:
-                client.index(index=index_name, document=json_val)
-            else:
-                client.index(index=index_name,\
-                             id=id_num,\
-                             document=json_val)
+            client.index(index=index_name,\
+                            document=json_val)
     # list ops
     elif isinstance(json_val, list):
         for json_str in json_val:
             if validate_json(json_str):
-                if id == 0:
-                    client.index(index=index_name, document=json_val)
-                else:
-                    client.index(index=index_name,\
-                                 id=id_num,\
-                                 document=json_val)
+                client.index(index=index_name,\
+                             document=json_val)
     # invalid type
     else:
         return

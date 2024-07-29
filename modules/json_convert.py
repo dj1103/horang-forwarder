@@ -42,27 +42,22 @@ def validate_file_csv(filename):
     # either csv or xlsx
     if filename.lower().endswith("csv"):
         return True
-    
-    # neither csv or xlsx, then the file is invalid 
-    print(f"Error: '{filename}' is not a CSV valid file.")    
     return False
 
 
-def validate_file_csv(filename):
+def validate_file_json(filename):
     '''
-    validate if the file is a CSV
+    validate if the file is a json
     '''
     # if it's a file
     if not os.path.isfile(filename):
         return False
     
     # either csv or xlsx
-    if filename.lower().endswith("csv"):
+    if filename.lower().endswith("json"):
         return True
-    
-    # neither csv or xlsx, then the file is invalid 
-    print(f"Error: '{filename}' is not a CSV valid file.")    
     return False
+
 
 def csv_to_json(csv_file):
     '''
