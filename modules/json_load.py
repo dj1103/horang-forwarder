@@ -152,14 +152,13 @@ def connect_elk_db():
     return ret_val
 
 
-def load_json(client=None, index_name="default", id_num=0, json_val=[]):
+def load_json(client=None, index_name="default", json_val=[]):
     """
         load json string or list to Elk DB
 
     Args:
         client (_obj_): Elasticsearch instance
         index_name (_str_): index name
-        id_num (_int_): index number for searching the doc
         json_val (_str or list_): _load the JSON to Elk DB_
     
     Returns:
@@ -172,23 +171,14 @@ def load_json(client=None, index_name="default", id_num=0, json_val=[]):
     # string ops
     if isinstance(json_val, str):
         if validate_json(json_val):
-            # id wasn't provided, let elasticsearch select the id
-            if id == 0:
-                client.index(index=index_name, document=json_val)
-            else:
-                client.index(index=index_name,\
-                             id=id_num,\
-                             document=json_val)
+            client.index(index=index_name,\
+                            document=json_val)
     # list ops
     elif isinstance(json_val, list):
         for json_str in json_val:
             if validate_json(json_str):
-                if id == 0:
-                    client.index(index=index_name, document=json_val)
-                else:
-                    client.index(index=index_name,\
-                                 id=id_num,\
-                                 document=json_val)
+                client.index(index=index_name,\
+                             document=json_val)
     # invalid type
     else:
         return
