@@ -2,7 +2,7 @@
 
 ## Description
 
-This horangi forwarder is a log forwarder to inspect multiple subdirectories within a designated main directory for files. The script should load files with appended data and verify if the files have already been loaded before proceeding to the next file.
+This Horang forwarder is a log forwarder to inspect multiple subdirectories within a designated main directory for files. The script should load files with appended data and verify if the files have already been loaded before proceeding to the next file.
 
      Note: Test Version! Please don't use it for the production environment.
 
@@ -21,8 +21,8 @@ A designated main directory is the folder with multiple subdirectories and files
 The interval is optional. An interval of 10 seconds is recommended for the data ingestion rate.
 
     python3 logforwarder.py <directory> [<interval>]
-    Ex. python3 horangi_forwarder.py /nsm/zeek/
-    Ex. python3 horangi_forwarder.py c:\users\myaccount\Desktop\zeek\
+    Ex. python3 horang_forwarder.py /nsm/zeek/
+    Ex. python3 horang_forwarder.py c:\users\myaccount\Desktop\zeek\
 
 ## Future
 
@@ -55,7 +55,7 @@ The interval is optional. An interval of 10 seconds is recommended for the data 
 
 ## License and Copyright
 
-The Horangi log forwarder is Copyright 2024 D Jang and licensed under the MIT License. See 'LICENSE' for the terms of its release.
+The Horang log forwarder is Copyright 2024 D Jang and licensed under the MIT License. See 'LICENSE' for the terms of its release.
 
 https://opensource.org/license/mit
 
