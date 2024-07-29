@@ -1,7 +1,31 @@
+# The MIT License
+#
+# Copyright (c) 2024 Dave Jang
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+#
+
 import os
 import time
 import sys
 import json
+from modules.json_load import connect_elk_db
 
 ## horangi forwarder ##
 
@@ -10,14 +34,19 @@ def validate_args():
     Argument validation and helper
     '''
     if len(sys.argv) < 2:
-        print("[USAGE] python3 logforwarder.py <directory> [<interval>]")
+        print("[USAGE] python3 horang_forwarder.py <directory> [<interval>] [<dest option>]")
         return False
     
     if sys.argv[1] == "-h" or sys.argv[1] == "help":
-        print("[USAGE] python3 logforwarder.py <directory> [<interval>]")
-        print("[USAGE] please define the directory to load data")
-        print("[USAGE] Interval is optional")
-        print("[USAGE] Interval 10 second is recommeded for data ingestion rate")
+        print("[USAGE] python3 horang_forwarder.py <directory> [<interval>] [<dest option>]")
+        print("1. <directory> is madatory")
+        print(" Please define the directory to load data")
+        print("2. <Interval> is optional")
+        print(" Interval 10 second is recommeded for data ingestion rate")
+        print("3. <dest option> is optional, then but please add the interval")
+        print(" if you choose the destination option, then the inverval is mandatory.")
+        print(" Destination option, such as ELK or other SIEM")
+        print(" ELK is default as the SIEM")
         return False
     
     if os.path.exists(sys.argv[1]) and os.path.isdir(sys.argv[1]):
@@ -75,7 +104,15 @@ def main():
     try:
         dirlocator = sys.argv[1]
         interval = int(sys.argv[2]) if len(sys.argv) > 2 else 10
-        monitor_directory(dirlocator, interval)
+        dest_opt = int(sys.argv[3]) if len(sys.argv) > 3 else 1
+        # option 1 is ELK
+        if dest_opt == 1:
+            connect_elk_db()
+            monitor_directory(dirlocator, interval)
+        # other options for future
+        else:
+            print("Under development for integration..")
+            print("Please contact us if you need more integration to other SIEMs")
     except KeyboardInterrupt:
         print("closing out...")
         sys.exit()
