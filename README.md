@@ -6,6 +6,10 @@ This Horang forwarder is a log forwarder to inspect multiple subdirectories with
 
      Note: Test Version! Please don't use it for the production environment.
 
+## Unit Test
+
+     python -m unittest
+
 ## Version
 
 Testing with Python 3.12, published on 2023-10-02, expires on 2028-10, PEP 693
