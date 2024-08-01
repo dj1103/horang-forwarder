@@ -30,56 +30,23 @@
 
 
 from elasticsearch import Elasticsearch as elk_db
+import getpass
+import gc
 import os
 
-def validate_json(json_str):
-    """
-        Validate if it's a JSON.
-        It validates a specfic format.
-        Ex. {"id": "1 or {'id': '1
 
-    Args:
-        json_str (str): _JSON string_
-
-    Returns:
-        _bool_: _if it's not a json, then return false_
-    """
-    # string is required
-    if not isinstance(json_str, str):
+def validate_file_json(filename):
+    '''
+    validate if the file is a json
+    '''
+    # if it's a file
+    if not os.path.isfile(filename):
         return False
-    # strip off the empty spaces for the validation
-    json_str = json_str.strip()
-
-    # common json file
-    if json_str.startswith('{') and json_str.endswith('}'):
-        # filter out empty object 
-        if json_str == "{}":
-            return False
-        # json object start with { and end with }
-        if json_str[0] != '{' or json_str[-1] != '}':
-            return False
-        # split values to validate to a list
-        # {"id": "1 or {'id': '1
-        if json_str[1] == '\'':
-            json_list = json_str.split('\', ')
-            if not json_list.pop(0).startswith('{\''):
-                return False
-            for keyval_pair in json_list:
-                if not keyval_pair.startswith('\''):
-                    return False
-                if not ":" in json_str:
-                    return False
-        else:
-            json_list = json_str.split('\", ')
-            # remove first element
-            if not json_list.pop(0).startswith('{\"'):
-                return False
-            for keyval_pair in json_list:
-                if not keyval_pair.startswith('\"'):
-                    return False
-                if not ":" in json_str:
-                    return False
+    
+    # either csv or xlsx
+    if filename.lower().endswith("json"):
         return True
+    return False
 
 
 def connect_elk_db():
@@ -89,72 +56,82 @@ def connect_elk_db():
     Returns:
         _obj_: if it's none, then no connection is established
     """
-    ret_val = None
+    client = None
     # HTTPS or HTTP
-    option = input("Please choose the option to connect the Elastic DB:\n\
+    option = input("Please choose the option to connect the Elastic DB\n\
                    1: non-secure mode - HTTP (non-production or testing)\n\
-                   2: secure mode - HTTPS and authentication (production)")
+                   2: secure mode - HTTPS and authentication (production)\n\
+                   Ex. 1\n : ")
     # ip and port holders
-    ip = input("Please provide the IP address of the DB - default:localhost")
+    ip = input("Please provide the IP address of the Elastic DB or press enter to use \"localhost\"\n\
+                   Ex. 127.0.0.1\n : ")
     if ip == "":
         ip = "localhost"
-    port = input("Please provide the port number of the DB - default:9200")
+    port = input("Please provide the port number of the Elastic DB or press enter to use default port number\n\
+                    Ex. 9200\n : ")
     if port == "":
         port = "9200"
-
-    # either secure or non-secure modes
-    if option == "1":
-        # non-secure mode - testing and non-production
-        # secure mode only uses either username and password
-        # clear traffic
-        http_connect = f'http://{ip}:{port}' 
-        ret_val = elk_db([http_connect])
-
-    elif option == "2":
-        # secure mode
-        https_connect = f'https://{ip}:{port}'
-        option = input("Please choose the option to connect the Elastic DB:\n\
-                        1: Basic Authentication - Username and Password\n\
-                        2: API Authentication - API Key")
-        ca_path = input("Please provide the CA path - HTTPS certification\n\
-                         Ex. the root CA certificate can be found in certs/https_ca.crt")
-        # default path
-        if ca_path == "":
-            ca_path = "$ES_CONF_PATH/certs/http_ca.crt"
-
-        # authentication methods 
+    try:
+        # either secure or non-secure modes
         if option == "1":
-            # basic authentication
+            # non-secure mode [clear traffic] - testing and non-production
+            # secure mode only uses either username and password
             http_connect = f'http://{ip}:{port}'
-            user = "Please provide the user name of the DB"
-            password = "Please provide the password of the user"
-            ret_val = elk_db(
-                [https_connect], 
-                ca_path, 
-                basic_auth=(user, password))
+            client = elk_db(http_connect)
         elif option == "2":
-            # API authentication
-            api_key = input("Please provide the API key - Ex. Kibana Stack Management\
-                             or Elastic API Key")
-            ret_val = elk_db(
-                [https_connect], 
-                ca_path,
-                api_key)
+            # secure mode
+            https_connect = f'https://{ip}:{port}'
+            
+            option = input("Please choose the option to connect the Elastic DB:\n\
+                            1: Basic Authentication - Username and Password\n\
+                            2: API Authentication - API Key\n : ")
+            ca_path = input("Please provide the CA path - HTTPS certification\n\
+                            Ex. the root CA certificate can be found in certs/https_ca.crt\n : ")
+            # default path
+            if ca_path == "":
+                ca_path = "$ES_CONF_PATH/certs/http_ca.crt"
+
+            # authentication methods 
+            if option == "1":
+                user = input("Please provide the user name of the DB\n : ")
+                passwd = getpass.getpass("Please provide the password of the user\n : ")
+                client = elk_db(https_connect, 
+                                ca_path, 
+                                basic_auth=(user, passwd))
+                # flush the passwd and delete the variable from the enviroment
+                del passwd
+                del user
+            elif option == "2":
+                # API authentication
+                api_key = getpass.getpass("Please provide the API key - Ex. Kibana Stack Management\
+                                        or Elastic API Key\n : ")
+                client = elk_db(
+                    https_connect, 
+                    ca_path,
+                    api_key)
+                # flush the API Key and delete the variable from the enviroment
+                del api_key
+            else:
+                # no option - authentication
+                return client
         else:
-            # no option - authentication
-            return ret_val
-    else:
-        # no option - HTTP/HTTPS
-        return ret_val
-
-    # succssful response - ret_val.info()
-
-    return ret_val
+            return None
+        # connecting to the DB..
+        print(f'Connecting to {ip}..... Please wait...\n', end='', flush=True)
+        client_ifno = client.info()
+        # succssful response
+        print(client_ifno)
+        # Explicitly Releasing Memory - garbage collection cycle 
+        gc.collect()       
+        return client
+    except Exception as err:
+        print(f'\nUnable to connect to the ELK DB (http://{ip}:{port})\n{err}')
+        return None
 
 
 def load_json(client=None, json_val=[], index_name="default"):
     """
-        load json string or list to Elk DB
+        load json string or a list of JSONs to Elk DB
 
     Args:
         client (_obj_): Elasticsearch instance
@@ -164,21 +141,19 @@ def load_json(client=None, json_val=[], index_name="default"):
     """
     if client == None:
         print("No connection to the SIEM...... Please press ctrl-c")
-        return
+        return False
 
     # string ops
     if isinstance(json_val, str):
-        if validate_json(json_val):
-            client.index(index=index_name,\
-                            document=json_val)
+        client.index(index=index_name,\
+                     document=json_val)
     # list ops
     elif isinstance(json_val, list):
         for json_str in json_val:
-            if validate_json(json_str):
-                client.index(index=index_name,\
-                             document=json_val)
+            client.index(index=index_name,\
+                         document=json_str)
     # invalid type
     else:
-        return
+        return False
     
-    return
+    return True
