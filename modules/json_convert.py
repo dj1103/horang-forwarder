@@ -167,8 +167,44 @@ def read_to_json(filepath, pointer):
     except FileNotFoundError:
         print(f"Error: The file '{filepath}' was not found.")
     except json.JSONDecodeError as err:
-        print(f'JSON Decode Error - File Name: {filepath}.. {err}\n\
-                Please check the file format...')
+        #print(f'JSON Decode Error - File Name: {filepath}.. {err}\n\
+        #        Please check the file format...')
+        # invalid format.. skip
+        ret_val[1] = -1
+    except Exception as err:
+        print(f'Error: {err} - {filepath} file..')
+
+    return ret_val
+
+
+def reformat_to_json(filepath, pointer):
+    """
+        if load_to_json function fails, then the format needs to reload
+        Fail-over function to cover the format
+
+    Args:
+        filepath (_str_): _description_
+        pointer (__): _description_
+
+    Returns:
+        _type_: _description_
+    """
+    # return list
+    data = []
+    ret_val = [data, pointer]
+    # validate if the file is a 
+    if validate_file_json(filepath) == False:
+        return ret_val
+    try:
+        with open(filepath) as file:
+            file.seek(pointer)
+            lines = file.readlines()
+            for line in lines:
+                data.append(json.loads(line))
+        # unknown errors or unable to covert
+    except FileNotFoundError:
+        print(f"Error: The file '{filepath}' was not found.")
+    except json.JSONDecodeError as err:
         # invalid format.. skip
         ret_val[1] = -1
     except Exception as err:
