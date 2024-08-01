@@ -29,7 +29,10 @@ The interval is optional. An interval of 10 seconds is recommended for the data 
 1. Elastic API to load JSONs to the destination Elasticsearch DB
 
        Dependency: python -m pip install elasticsearch
-2. File validation and Data normalization
+   
+       API Key Management from Elastic
+       https://www.elastic.co/guide/en/kibana/current/api-keys.html
+3. File validation and Data normalization
 
         1. JSON to load
         2. CSV to JSON to load
