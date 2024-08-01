@@ -21,51 +21,86 @@
 # SOFTWARE.
 
 import os
+import re
 import sys
 
 
 class Locator:
-    def __init__(self):
+    def __init__(self, arg_one=".", arg_two="10", arg_three="1"):
+        """
+            Locator is to track the variables and file IO to send data accurately
+        """
         # <directory> is madatory
-        self.dirlocator = sys.argv[1]
+        self.dirlocator = sys.argv[1] if len(sys.argv) > 1 else arg_one
         # <Interval> is optional
-        self.interval = int(sys.argv[2]) if len(sys.argv) > 2 else 10
+        self.interval = int(sys.argv[2]) if len(sys.argv) > 2 else arg_two
         # <dest option> is optional, then but please add the interval
-        self.dest_opt = int(sys.argv[3]) if len(sys.argv) > 3 else 1
+        self.dest_opt = int(sys.argv[3]) if len(sys.argv) > 3 else arg_three
         self.fileposition = {}
         self.client = None
+        # current values
+        self.index = ""
+        self.filename = ""
+        self.root = ""
+        self.dirs = []
 
     def set_filepath(self, root, filename):
+        """
+            set the file position from the root, path, and file name
+        Args:
+            root (_str_): _path_
+            filename (_str_): _file name_
+
+        Returns:
+            _str_: _full path of the file and name_
+        """
+        self.filename = filename
+        self.root = root
         filepath = os.path.join(root, filename)
-        print(filepath)
-        if not validate_file_json(filepath):
-            return "" 
         if filepath not in self.fileposition:
-            self.fileposition[filepath] = 0        
+            self.set_index(filename)
+            self.fileposition[filepath] = 0
         return filepath
+
+    def is_filepath_in_position(self, filepath):
+        if self.fileposition.get(filepath) is None:
+            return 
 
     def set_filelocator(self, filepath, pointer):
         self.fileposition[filepath] = pointer
 
     def set_client(self, client):
-        self.client = client
+        if isinstance(Locator, client):
+            self.client = client
+            return
+        self.client = None
 
     def get_filepointer(self, filepath):
+        if filepath == "":
+            return ""
         return self.fileposition[filepath]
-
-
-def validate_file_json(filename):
-    '''
-    validate if the file is a json
-    '''
-    # if it's a file
-    if not os.path.isfile(filename):
-        return False
-    
-    # either csv or xlsx
-    if filename.lower().endswith("json"):
-        return True
-    return False
+   
+    def set_index(self, index):
+        try:
+            if index.lower().endswith("json") or\
+               index.lower().endswith("csv") or\
+               index.lower().endswith("log") or\
+               index.lower().endswith("gz"):
+                pattern = '^[a-zA-Z0-9]+'
+                # index name is based on the file naming convention
+                # unknown will be all default
+                name = re.match(pattern, index).group()
+                if len(name) > 1 and len(name) < 9:
+                    self.index = name.lower() + "_index"
+                else:
+                    self.index = "unknown_index"
+            else:
+                self.index = "invalid_index"          
+        except AttributeError:
+            self.index = "unknown_index"
+            
+    def get_index(self):
+        return self.index
 
 
 def validate_args():
