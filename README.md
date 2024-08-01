@@ -58,7 +58,7 @@ The interval is optional. An interval of 10 seconds is recommended for the data 
 
 ## License and Copyright
 
-The Horang log forwarder is Copyright 2024 D Jang and licensed under the MIT License. See 'LICENSE' for the terms of its release.
+The Horang log forwarder is Copyright 2024 Dave Jang and licensed under the MIT License. See 'LICENSE' for the terms of its release.
 
 https://opensource.org/license/mit
 
