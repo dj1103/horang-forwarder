@@ -32,21 +32,6 @@
 from elasticsearch import Elasticsearch as elk_db
 import getpass
 import gc
-import os
-
-
-def validate_file_json(filename):
-    '''
-    validate if the file is a json
-    '''
-    # if it's a file
-    if not os.path.isfile(filename):
-        return False
-    
-    # either csv or xlsx
-    if filename.lower().endswith("json"):
-        return True
-    return False
 
 
 def connect_elk_db():
@@ -118,42 +103,45 @@ def connect_elk_db():
             return None
         # connecting to the DB..
         print(f'Connecting to {ip}..... Please wait...\n', end='', flush=True)
-        client_ifno = client.info()
-        # succssful response
-        print(client_ifno)
-        # Explicitly Releasing Memory - garbage collection cycle 
-        gc.collect()       
+        client.info()
         return client
     except Exception as err:
         print(f'\nUnable to connect to the ELK DB (http://{ip}:{port})\n{err}')
         return None
+    
+    finally:
+        # Explicitly Releasing Memory - garbage collection cycle 
+        gc.collect()    
 
 
-def load_json(client=None, json_val=[], index_name="default"):
+def load_json_to_elk(locator=None, json_val=[]):
     """
         load json string or a list of JSONs to Elk DB
 
     Args:
-        client (_obj_): Elasticsearch instance
-        json_val (_str or list_): _load the JSON to Elk DB_
-        index_name (_str_): index name
+        locator (_Locator_): Locator instance
+        json_val (JSON or _str or list_): _load the JSON to Elk DB_
 
+        if the dict or list has strings, then it converts strings 
+        to JSON to the Elasticsearch server.
     """
-    if client == None:
+    if locator == None or locator.client == None:
         print("No connection to the SIEM...... Please press ctrl-c")
         return False
 
     # string ops
-    if isinstance(json_val, str):
-        client.index(index=index_name,\
-                     document=json_val)
-    # list ops
+    if isinstance(json_val, dict):
+        # Elastic REST API
+        locator.client.index(index=locator.get_index(),\
+                             document=json_val)
+        # list ops
     elif isinstance(json_val, list):
+        # Elastic REST API
         for json_str in json_val:
-            client.index(index=index_name,\
-                         document=json_str)
+            locator.client.index(index=locator.get_index(),\
+                                 document=json_str)
     # invalid type
     else:
         return False
     
-    return True
+    return True\
