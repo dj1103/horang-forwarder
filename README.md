@@ -62,6 +62,6 @@ The Horang log forwarder is Copyright 2024 Dave Jang and licensed under the MIT 
 
 https://opensource.org/license/mit
 
-Copyright (c) 2024 D Jang
+Copyright (c) 2024 Dave Jang
 
 If you are interested in including this in your project, please feel free to contact me.
