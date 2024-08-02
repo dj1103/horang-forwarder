@@ -6,6 +6,10 @@ This Horang forwarder is a log forwarder to inspect multiple subdirectories with
 
      Note: Test Version! Please don't use it for the production environment.
 
+## Continous Integration and Continuos Development (CI/CD Pipeline)  
+
+     You can check the status of the repo with the "Actions" tap or CI/CD pipeline.
+
 ## Unit Test
 
      python -m unittest
