@@ -27,11 +27,12 @@ import sys
 import json
 from modules.json_convert import validate_file_csv
 from modules.json_convert import validate_file_json
+from modules.json_convert import validate_file_gz
+from modules.json_convert import validate_file_log
 from modules.json_convert import read_csv_to_json
 from modules.json_convert import read_to_json
-from modules.json_convert import reformat_to_json
-from modules.json_convert import validate_file_log
 from modules.json_convert import read_log_to_json
+from modules.json_convert import read_gz_to_json
 from modules.json_load import connect_elk_db
 from modules.json_load import load_json_to_elk
 from modules.forwarder_arg import validate_args
@@ -60,6 +61,8 @@ def load_data(filepath, pointer):
         return read_csv_to_json(filepath, pointer)
     elif validate_file_log(filepath):
         return read_log_to_json(filepath, pointer)
+    elif validate_file_gz(filepath):
+        return read_gz_to_json(filepath, pointer)
     else:
         return ret_val
 
@@ -100,7 +103,8 @@ def monitor_directory(locator=None):
                     if data and pointer > 0:
                         print(f'[INFO] Sucessfully loaded the "{locator.filename}\" file now...', \
                               flush=True)
-                        print(f'Please wait....', flush=True)
+                        print(filepath, data)
+                        print(f'[INFO] Please wait....', flush=True)
                     ######################################################################
                     # Successfully loaded data as JSON, then load the JSON/s to the SIEM #
                     # possibly add threads for future                                    #
