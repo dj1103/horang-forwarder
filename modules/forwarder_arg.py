@@ -91,13 +91,13 @@ class Locator:
                 # unknown will be all default
                 name = re.match(pattern, index).group()
                 if len(name) > 1 and len(name) < 9:
-                    self.index = name.lower() + "_index"
+                    self.index = name.lower().title()
                 else:
-                    self.index = "unknown_index"
+                    self.index = "Unknown"
             else:
-                self.index = "invalid_index"          
+                self.index = "Invalid"          
         except AttributeError:
-            self.index = "unknown_index"
+            self.index = "Invalid"
             
     def get_index(self):
         return self.index

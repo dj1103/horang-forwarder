@@ -141,10 +141,12 @@ def load_json_to_elk(locator=None, json_val=[]):
         if the dict or list has strings, then it converts strings 
         to JSON to the Elasticsearch server.
     """
+    # no data to send.
+    if len(json_val) == 0:
+        return False
     if locator == None or locator.client == None:
         print("No connection to the SIEM...... Please press ctrl-c")
         return False
-
     # one index
     if isinstance(json_val, dict):
         # Elastic REST API

@@ -28,6 +28,7 @@
 
 
 import csv
+import gzip
 import os
 import json
 import sys
@@ -78,6 +79,71 @@ def validate_file_log(filename):
     return False
 
 
+def validate_file_gz(filename):
+    '''
+    validate if the file is a log 
+    '''
+    # if it's a file
+    if not os.path.isfile(filename):
+        return False
+    
+    # end with log
+    if filename.lower().endswith("gz"):
+        return True
+
+    return False
+
+
+def read_gz_to_json(filepath, pointer):
+    '''
+    Read the GZ file only and this needs to be a log
+    
+    return: a list of JSON
+    '''
+    # return list
+    ret_val = [[], pointer]
+    # validate if the file is a GZ
+    if validate_file_csv(filepath) == False:
+        return ret_val
+    
+    data =[]
+    ret_val = [data, pointer]
+    # validate if the file is a 
+    if validate_file_log(filepath) == False:
+        return ret_val
+    if pointer == -1:
+        return ret_val
+    try:
+        with gzip.open(filepath, mode="rt") as file:
+            # file load with the position
+            file.seek(pointer)
+            # if the pointer is at the end of the file
+            if file.tell() == os.path.getsize(filepath):
+                return ret_val
+            lines = file.readlines()       
+            # json
+            ret_val = parse_text_to_json(lines, pointer)
+            if ret_val[1] != -1:
+                return ret_val
+            # tsv
+            tsv_fields = get_fields_from_tsv(lines, pointer)
+
+            if len(tsv_fields) > 0:
+                # pointer resets
+                return parse_tsv_to_json(lines, tsv_fields, pointer)
+            # exist
+            ret_val[1] = file.tell()
+    except FileNotFoundError:
+        print(f"Error: The file '{filepath}' was not found.")
+    except json.JSONDecodeError as err:
+        # invalid format.. skip
+        ret_val[1] = -1
+    except Exception as err:
+        print(f'Error: {err} - {filepath} file..')
+        ret_val[1] = -1
+    return ret_val     
+
+
 def read_csv_to_json(csv_file, pointer):
     '''
     Read the CSV file only and add data to a list to load
@@ -119,7 +185,6 @@ def read_csv_to_json(csv_file, pointer):
                         values = [idx.strip() for idx in line.strip().split(',')]
                         ret_val[1] += len(line)
                         mapped_data = {field_names[idx]: values[idx] for idx in range(len(field_names))}
-                        print(mapped_data)
                         ret_val[0].append(mapped_data)
                     else:
                         ret_val[1] += len(line)
@@ -184,6 +249,13 @@ def get_fields_from_tsv(lines):
                 line[0] == "#" and \
                 "fields" in line:
                 ret_val = [idx.strip() for idx in line.split('\t')]
+                if len(ret_val) == 0:
+                    temp = [idx.strip() for idx in line.split(' ')]
+                    for idx in temp:
+                        if not '\n' == idx:
+                            ret_val.append(idx)
+                if len(ret_val) == 1 and '\t' not in line:
+                    ret_val = [idx.strip() for idx in line.split(' ') if idx.strip()]
                 ret_val.pop(0)
                 break
     except ValueError:
@@ -203,12 +275,19 @@ def parse_tsv_to_json(lines, tsv_fields, pointer):
         _list_: _data and pointer (int)_
     """
     data =[]
+    orig_pointer = pointer
     ret_val = [data, pointer]
     # empty
     if len(tsv_fields) > 0:
         for line in lines:
+            # not JSON - tsv should not have {
+            if line[0] == '{':
+                ret_val[0] = []
+                ret_val[1] = orig_pointer
+                return
             # empty
-            if not len(line) > 0:
+            if len(line) == '\n':
+                ret_val[1] += 1
                 continue
             # skip except the fields
             if line[0] == "#":
@@ -217,21 +296,21 @@ def parse_tsv_to_json(lines, tsv_fields, pointer):
                 else:
                     ret_val[1] += len(line)
                 continue
-            if not '\t' in line:
-                if line.endswith("\n"):
-                    ret_val[1] += len(line) + 1
-                else:
-                    ret_val[1] += len(line)
-                continue 
+            # split by the tab
             elements = [idx.strip() for idx in line.split('\t')]
-
+            # fail over - no tab.. space
+            if len(elements) == 1 and '\t' not in line:
+                elements = [idx.strip() for idx in line.split(' ') if idx.strip()]
             if len(elements) == len(tsv_fields):
                 temp = {tsv_fields[idx]: elements[idx] for idx in range(len(tsv_fields))}    
                 data.append(temp)
+            if line.endswith("\n"):
+                ret_val[1] += len(line) + 1
+            else:
                 ret_val[1] += len(line)
     # no file was loaded
-    if ret_val[1] == 0:
-        ret_val = -1
+    if ret_val[0] == []:
+        ret_val[1] = -1
 
     return ret_val
 
@@ -259,7 +338,10 @@ def parse_text_to_json(lines, pointer):
             continue
         # skip except the fields
         if line[0] == "#":
-            ret_val[1] += len(line) + 1
+            if line.endswith("\n"):
+                ret_val[1] += len(line) + 1
+            else:
+                ret_val[1] += len(line)
             continue
         if line[0] == "{":
             if  line.strip().endswith("}"):
@@ -271,7 +353,7 @@ def parse_text_to_json(lines, pointer):
         else:
             continue
     # no file was loaded
-    if ret_val[1] == 0:
+    if ret_val[0] == []:
         ret_val[1] = -1
     return ret_val
 
@@ -297,6 +379,7 @@ def read_log_to_json(filepath, pointer):
     try:
         with open(filepath) as file:
             # file load with the position
+            print(filepath, pointer, os.path.getsize(filepath))
             file.seek(pointer)
             # if the pointer is at the end of the file
             if file.tell() == os.path.getsize(filepath):
@@ -304,11 +387,11 @@ def read_log_to_json(filepath, pointer):
             lines = file.readlines()       
             # json
             ret_val = parse_text_to_json(lines, pointer)
-            if ret_val[1] != -1:
+            if ret_val[1] > 0:
                 return ret_val
             # tsv
-            tsv_fields, pointer = get_fields_from_tsv(lines, pointer)
-
+            tsv_fields = get_fields_from_tsv(lines)
+            print(tsv_fields)
             if len(tsv_fields) > 0:
                 # pointer resets
                 return parse_tsv_to_json(lines, tsv_fields, pointer)

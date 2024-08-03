@@ -40,49 +40,50 @@ class TestModuleMethods(unittest.TestCase):
     
         # common test cases
         locator.set_index("conn.log")
-        self.assertEqual(locator.get_index(), "conn_index")
+        self.assertEqual(locator.get_index(), "Conn")
         locator.set_index("ntlm.log")
-        self.assertEqual(locator.get_index(), "ntlm_index")
+        self.assertEqual(locator.get_index(), "Ntlm")
         locator.set_index("known_bug.log")
-        self.assertEqual(locator.get_index(), "known_index")
+        self.assertEqual(locator.get_index(), "Known")
         locator.set_index("pe.log")
-        self.assertEqual(locator.get_index(), "pe_index")
+        self.assertEqual(locator.get_index(), "Pe")
         locator.set_index("x509.log")
-        self.assertEqual(locator.get_index(), "x509_index")
+        self.assertEqual(locator.get_index(), "X509")
         locator.set_index("conn_2018_9999-111.log.gz")
-        self.assertEqual(locator.get_index(), "conn_index")
+        self.assertEqual(locator.get_index(), "Conn")
         locator.set_index("conn_2018_9999-111.log")
-        self.assertEqual(locator.get_index(), "conn_index")
+        self.assertEqual(locator.get_index(), "Conn")
         locator.set_index("netflow_data_2018.csv")
-        self.assertEqual(locator.get_index(), "netflow_index")
+        self.assertEqual(locator.get_index(), "Netflow")
    
         # upper and lower cases
         locator.set_index("Netflow_data_2018.csv")
-        self.assertEqual(locator.get_index(), "netflow_index")
+        self.assertEqual(locator.get_index(), "Netflow")
         locator.set_index("Netflow_DATA_2018.CSV")
-        self.assertEqual(locator.get_index(), "netflow_index")
+        self.assertEqual(locator.get_index(), "Netflow")
         locator.set_index("CAPTURE_LOSS.LOG")
-        self.assertEqual(locator.get_index(), "capture_index")
+        self.assertEqual(locator.get_index(), "Capture")
    
         # unknown
         locator.set_index("s3892834dfksdofsosdfsf0ss9ds9.log")
-        self.assertEqual(locator.get_index(), "unknown_index")
+        self.assertEqual(locator.get_index(), "Unknown")
         locator.set_index("329j239j90fsdkfa0.log")
-        self.assertEqual(locator.get_index(), "unknown_index")
+        self.assertEqual(locator.get_index(), "Unknown")
    
         # invalid file
         locator.set_index("329j239j90fsdkfa0.exe")
-        self.assertEqual(locator.get_index(), "invalid_index")
+        self.assertEqual(locator.get_index(), "Invalid")
         locator.set_index("ntaa.dll")
-        self.assertEqual(locator.get_index(), "invalid_index")
+        self.assertEqual(locator.get_index(), "Invalid")
         locator.set_index("zeekctl.cfg")
-        self.assertEqual(locator.get_index(), "invalid_index")
+        self.assertEqual(locator.get_index(), "Invalid")
         locator.set_index("broctl")
-        self.assertEqual(locator.get_index(), "invalid_index")
+        self.assertEqual(locator.get_index(), "Invalid")
 
-        #print("\n############# 1) INDEX NAMING CONVERSION TEST SUCCESS! ################")
+        print("\n############# 1) INDEX NAMING CONVERSION TEST SUCCESS! ################")
         locator.set_index("conn.log")
-        #print("INDEX NAME OF CONN.LOG: ", locator.get_index())
+        print("INDEX NAME OF CONN.LOG: ", locator.get_index())
+
 
     def test_from_log_to_json(self):
         
@@ -234,6 +235,7 @@ class TestModuleMethods(unittest.TestCase):
         csv_file = locator.set_filepath(SOURCE_PATH, "test.csv")
         pointer = 0
         json_ret_val = load_data(csv_file, pointer)
+        assert json_ret_val[0]
         locator.set_filelocator(csv_file, json_ret_val[1])
         self.assertNotEqual(json_ret_val[1], 0)
         self.assertEqual(str(json_ret_val[0][0]), \
@@ -271,17 +273,34 @@ class TestModuleMethods(unittest.TestCase):
         json_file1 = locator.set_filepath(SOURCE_PATH, "test4.log")
         pointer = 0
         json_ret_val = load_data(json_file1, pointer)
+        assert json_ret_val[0]
         locator.set_filelocator(json_file1, json_ret_val[1])
         self.assertNotEqual(json_ret_val[1], 0)       
         for idx in range(0, 3):
             json_ret_val = load_data(json_file1, 
                                      locator.fileposition[json_file1])
-            print(json_ret_val)
             self.assertNotEqual(locator.fileposition[json_file1], 0)
             self.assertEqual(json_ret_val[0], [])
             self.assertEqual(json_ret_val[1], locator.fileposition[json_file1])
         print("\n############# 9) MULTI ATTEMPT (JSON TEXT) TEST SUCCESS! ################")
         print("File count: ", locator.fileposition[json_file1], "\n")
+
+        # TSV Testing
+        json_file5 = locator.set_filepath(SOURCE_PATH, "test5.log")
+        pointer = 0
+        json_ret_val = load_data(json_file5, pointer)
+        assert json_ret_val[0]
+        locator.set_filelocator(json_file5, json_ret_val[1])
+
+        self.assertNotEqual(json_ret_val[1], 0)       
+        for idx in range(0, 3):
+            json_ret_val = load_data(json_file5, 
+                                     locator.fileposition[json_file5])    
+            self.assertNotEqual(locator.fileposition[json_file5], 0)
+            self.assertEqual(json_ret_val[0], [])
+            self.assertEqual(json_ret_val[1], locator.fileposition[json_file5])
+        print("\n############# 10) MULTI ATTEMPT (TSV) TEST SUCCESS! ################")
+        print("File count: ", locator.fileposition[json_file5], "\n")
 
 
     def test_csv_to_json(self):
