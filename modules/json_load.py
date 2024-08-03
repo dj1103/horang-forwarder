@@ -62,7 +62,8 @@ def connect_elk_db():
             # non-secure mode [clear traffic] - testing and non-production
             # secure mode only uses either username and password
             http_connect = f'http://{ip}:{port}'
-            client = elk_db(http_connect)
+            client = elk_db(http_connect,
+                            request_timeout=3)
         elif option == "2":
             # secure mode
             https_connect = f'https://{ip}:{port}'
@@ -81,19 +82,21 @@ def connect_elk_db():
                 user = input("Please provide the user name of the DB\n : ")
                 passwd = getpass.getpass("Please provide the password of the user\n : ")
                 client = elk_db(https_connect, 
-                                ca_path, 
-                                basic_auth=(user, passwd))
+                                ca_certs=ca_path, 
+                                basic_auth=(user, passwd),
+                                request_timeout=3)
                 # flush the passwd and delete the variable from the enviroment
                 del passwd
                 del user
             elif option == "2":
                 # API authentication
-                api_key = getpass.getpass("Please provide the API key - Ex. Kibana Stack Management\
-                                        or Elastic API Key\n : ")
+                api_key_val = getpass.getpass("Please provide the API key - Ex. Kibana Stack Management\n\
+                                              \or Elastic API Key\n : ")
                 client = elk_db(
                     https_connect, 
-                    ca_path,
-                    api_key)
+                    ca_certs=ca_path,
+                    api_key= api_key_val,
+                    request_timeout=3)
                 # flush the API Key and delete the variable from the enviroment
                 del api_key
             else:
@@ -102,11 +105,13 @@ def connect_elk_db():
         else:
             return None
         # connecting to the DB..
-        print(f'Connecting to {ip}..... Please wait...\n', end='', flush=True)
+        print(f'Connecting to {ip}..... Please wait...', \
+              flush=True)
         client.info()
         return client
     except Exception as err:
-        print(f'\nUnable to connect to the ELK DB (http://{ip}:{port})\n{err}')
+        print(f'\nUnable to connect to the ELK DB (http://{ip}:{port})\n{err}', \
+                flush=True)
         return None
     
     finally:
@@ -144,4 +149,4 @@ def load_json_to_elk(locator=None, json_val=[]):
     else:
         return False
     
-    return True\
+    return True
