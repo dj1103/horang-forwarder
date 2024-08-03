@@ -30,6 +30,8 @@ from modules.json_convert import validate_file_json
 from modules.json_convert import read_csv_to_json
 from modules.json_convert import read_to_json
 from modules.json_convert import reformat_to_json
+from modules.json_convert import validate_file_log
+from modules.json_convert import read_log_to_json
 from modules.json_load import connect_elk_db
 from modules.json_load import load_json_to_elk
 from modules.forwarder_arg import validate_args
@@ -51,7 +53,7 @@ def load_data(filepath, pointer):
     Returns:
         _a list with data and pointer_ (_list_): _returns JSON data list and pointer_
     """
-    ret_val = ["", pointer]
+    ret_val = [[], pointer]
     if validate_file_json(filepath):
         ret_val = read_to_json(filepath, pointer)
         # fail over reformatting JSON files
@@ -61,6 +63,8 @@ def load_data(filepath, pointer):
         return ret_val
     elif validate_file_csv(filepath):
         return read_csv_to_json(filepath, pointer)
+    elif validate_file_log(filepath):
+        return read_log_to_json(filepath, pointer)
     else:
         return ret_val
 
@@ -88,6 +92,7 @@ def monitor_directory(locator=None):
                         # initial position to load the file
                         data, pointer = load_data(filepath, 
                                                   locator.get_filepointer(filepath))
+
                         # Notthing to load or flag to skip
                     if pointer == -1 or data == "":
                         # format Error then fail-over re-attempt
@@ -97,7 +102,10 @@ def monitor_directory(locator=None):
                             # break for invalid format mapping to pass the next time
                             time.sleep(locator.interval)
                         continue
-
+                    if data and pointer > 0:
+                        print(f'[INFO] Loaded the JSON file \"{locator.filename}\" now...', \
+                              flush=True)
+                        print(data)
                     ######################################################################
                     # Successfully loaded data as JSON, then load the JSON/s to the SIEM #
                     # possibly add threating for future                                  #
@@ -107,7 +115,6 @@ def monitor_directory(locator=None):
                     if ret == True:
                         locator.set_filelocator(filepath, pointer)
                     else:
-                        print(f'Unable to load the JSON file \"{locator.filename}\" now...')
                         time.sleep(locator.interval)
             time.sleep(locator.interval)
     except Exception as err:
