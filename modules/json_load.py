@@ -30,8 +30,23 @@
 
 
 from elasticsearch import Elasticsearch as elk_db
+import time
 import getpass
 import gc
+
+
+def get_ipport_from_input():
+    # ip and port holders
+    ip = input("Please provide the IP address of the Elastic DB or press enter to use \"localhost\"\n\
+                   Ex. 127.0.0.1\n : ")
+    if ip == "":
+        ip = "localhost"
+    port = input("Please provide the port number of the Elastic DB or press enter to use default port number\n\
+                    Ex. 9200\n : ")
+    if port == "":
+        port = "9200"
+
+    return [ip, port]
 
 
 def connect_elk_db():
@@ -42,29 +57,25 @@ def connect_elk_db():
         _obj_: if it's none, then no connection is established
     """
     client = None
-    # HTTPS or HTTP
-    option = input("Please choose the option to connect the Elastic DB\n\
+    # connection time out set as 3 seconds
+    connection_time_out = 3
+
+    try:
+        # HTTPS or HTTP
+        option = input("Please choose the option to connect the Elastic DB\n\
                    1: non-secure mode - HTTP (non-production or testing)\n\
                    2: secure mode - HTTPS and authentication (production)\n\
                    Ex. 1\n : ")
-    # ip and port holders
-    ip = input("Please provide the IP address of the Elastic DB or press enter to use \"localhost\"\n\
-                   Ex. 127.0.0.1\n : ")
-    if ip == "":
-        ip = "localhost"
-    port = input("Please provide the port number of the Elastic DB or press enter to use default port number\n\
-                    Ex. 9200\n : ")
-    if port == "":
-        port = "9200"
-    try:
         # either secure or non-secure modes
         if option == "1":
+            ip, port = get_ipport_from_input()
             # non-secure mode [clear traffic] - testing and non-production
             # secure mode only uses either username and password
             http_connect = f'http://{ip}:{port}'
             client = elk_db(http_connect,
-                            request_timeout=3)
+                            request_timeout=connection_time_out)
         elif option == "2":
+            ip, port = get_ipport_from_input()
             # secure mode
             https_connect = f'https://{ip}:{port}'
             
@@ -84,21 +95,21 @@ def connect_elk_db():
                 client = elk_db(https_connect, 
                                 ca_certs=ca_path, 
                                 basic_auth=(user, passwd),
-                                request_timeout=3)
+                                request_timeout=connection_time_out)
                 # flush the passwd and delete the variable from the enviroment
                 del passwd
                 del user
             elif option == "2":
                 # API authentication
                 api_key_val = getpass.getpass("Please provide the API key - Ex. Kibana Stack Management\n\
-                                              \or Elastic API Key\n : ")
+                                              or Elastic API Key\n : ")
                 client = elk_db(
                     https_connect, 
                     ca_certs=ca_path,
                     api_key= api_key_val,
-                    request_timeout=3)
+                    request_timeout=connection_time_out)
                 # flush the API Key and delete the variable from the enviroment
-                del api_key
+                del api_key_val
             else:
                 # no option - authentication
                 return client
@@ -134,15 +145,18 @@ def load_json_to_elk(locator=None, json_val=[]):
         print("No connection to the SIEM...... Please press ctrl-c")
         return False
 
-    # string ops
+    # one index
     if isinstance(json_val, dict):
         # Elastic REST API
         locator.client.index(index=locator.get_index(),\
                              document=json_val)
-        # list ops
+    # multiple indexes
     elif isinstance(json_val, list):
         # Elastic REST API
-        for json_str in json_val:
+        for idx, json_str in enumerate(json_val):
+            # pause per 1000 indexes at the time
+            if idx % 500 == 0:
+                time.sleep(locator.interval)
             locator.client.index(index=locator.get_index(),\
                                  document=json_str)
     # invalid type
