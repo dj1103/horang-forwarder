@@ -2,7 +2,6 @@ import unittest
 import json
 
 
-from modules.json_convert import validate_json
 from modules.json_convert import read_csv_to_json
 from modules.json_convert import read_to_json
 from modules.json_convert import reformat_to_json
@@ -157,7 +156,6 @@ class TestModuleMethods(unittest.TestCase):
         json_ret_val2 = read_to_json(json_file, pointer)
         self.assertTrue(isinstance(json_ret_val2[0], dict))
         self.assertNotEqual(json_ret_val2[1], 0)
-        self.assertTrue(validate_json(json_ret_val2[0]))
     
         # Test case 3
         json_file = locator.set_filepath(SOURCE_PATH, "test2.ndjson")

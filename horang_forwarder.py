@@ -55,12 +55,7 @@ def load_data(filepath, pointer):
     """
     ret_val = [[], pointer]
     if validate_file_json(filepath):
-        ret_val = read_to_json(filepath, pointer)
-        # fail over reformatting JSON files
-        if ret_val[1] == -1:
-            # pointer reset
-            return reformat_to_json(filepath, pointer)
-        return ret_val
+        return read_to_json(filepath, pointer)
     elif validate_file_csv(filepath):
         return read_csv_to_json(filepath, pointer)
     elif validate_file_log(filepath):
@@ -103,14 +98,15 @@ def monitor_directory(locator=None):
                             time.sleep(locator.interval)
                         continue
                     if data and pointer > 0:
-                        print(f'[INFO] Loaded the JSON file \"{locator.filename}\" now...', \
+                        print(f'[INFO] Sucessfully loaded the "{locator.filename}\" file now...', \
                               flush=True)
-                        print(data)
+                        print(f'Please wait....', flush=True)
                     ######################################################################
                     # Successfully loaded data as JSON, then load the JSON/s to the SIEM #
-                    # possibly add threating for future                                  #
+                    # possibly add threads for future                                    #
                     ###################################################################### 
                     ret = load_json_to_elk(locator.client, data)
+                    locator.set_filelocator(filepath, pointer)
                     # if succefully loaded
                     if ret == True:
                         locator.set_filelocator(filepath, pointer)
@@ -118,7 +114,7 @@ def monitor_directory(locator=None):
                         time.sleep(locator.interval)
             time.sleep(locator.interval)
     except Exception as err:
-        print(f'Closing out... due to {err}')
+        print(f'[ERROR] Closing out... due to {err}')
         sys.exit(1)
 
 
@@ -133,12 +129,14 @@ def main():
             #locator.client = connect_elk_db()
             if locator.client == None:
                 monitor_directory(locator)
+            else:
+                print("[ERROR] Please choose the option..")
         # other options for future
         else:
-            print("Under development for integration..")
-            print("Please contact us if you need more integration to other SIEMs")
+            print("[INFOO] Under development for integration..")
+            print("[INFOO] Please contact us if you need more integration to other SIEMs")
     except KeyboardInterrupt:
-        print("Closing out...")
+        print("[ERROR] Closing out...")
         sys.exit()
     return
 
