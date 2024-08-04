@@ -320,10 +320,6 @@ def parse_tsv_to_json(lines, tsv_fields, pointer):
             if len(elements) == len(tsv_fields):
                 temp = {tsv_fields[idx]: elements[idx] for idx in range(len(tsv_fields))}    
                 data.append(temp)
-
-        # no file was loaded
-        if ret_val[0] == []:
-            ret_val[1] = -1
     return ret_val
 
 
@@ -364,9 +360,6 @@ def parse_text_to_json(lines, pointer):
                     ret_val[1] += len(line)
         else:
             continue
-    # no file was loaded
-    if ret_val[0] == []:
-        ret_val[1] = -1
     return ret_val
 
 
@@ -420,7 +413,7 @@ def read_log_to_json(filepath, pointer):
             if not tsv_flag:
                 file.seek(pointer)
                 # if the pointer is at the end of the file
-                if file.tell() == os.path.getsize(filepath):
+                if file.seek(pointer) == os.path.getsize(filepath):
                     return ret_val
                 lines = file.readlines()
                 ret_val = parse_text_to_json(lines, pointer)
