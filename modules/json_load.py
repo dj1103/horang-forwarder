@@ -144,6 +144,7 @@ def load_json_to_elk(locator=None, json_val=[]):
     # no data to send.
     if len(json_val) == 0:
         return False
+
     if locator == None or locator.client == None:
         print("No connection to the SIEM...... Please press ctrl-c")
         return False

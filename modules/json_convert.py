@@ -113,26 +113,32 @@ def read_gz_to_json(filepath, pointer):
         return ret_val
     if pointer == -1:
         return ret_val
-    try:
+    try:  
+        tsv_flag = validate_file_tsv(filepath)
         with gzip.open(filepath, mode="rt") as file:
-            # file load with the position
-            file.seek(pointer)
-            # if the pointer is at the end of the file
-            if file.tell() == os.path.getsize(filepath):
-                return ret_val
-            lines = file.readlines()       
             # json
-            ret_val = parse_text_to_json(lines, pointer)
-            if ret_val[1] != -1:
-                return ret_val
+            if not tsv_flag:
+                file.seek(pointer)
+                # if the pointer is at the end of the file
+                if file.tell() == os.path.getsize(filepath):
+                    return ret_val
+                lines = file.readlines()
+                ret_val = parse_text_to_json(lines, pointer)
+                if ret_val[1] > 0:
+                    return ret_val
             # tsv
-            tsv_fields = get_fields_from_tsv(lines, pointer)
+            if tsv_flag:
+                lines = file.readlines()
+                tsv_fields = get_fields_from_tsv(lines)
+                #print(filepath, pointer, os.path.getsize(filepath), tsv_fields)
+                file.seek(pointer)
+                # if the pointer is at the end of the file
+                if file.tell() == os.path.getsize(filepath):
+                    return ret_val
 
-            if len(tsv_fields) > 0:
-                # pointer resets
-                return parse_tsv_to_json(lines, tsv_fields, pointer)
-            # exist
-            ret_val[1] = file.tell()
+                if len(tsv_fields) > 0:
+                    # pointer resets
+                    return parse_tsv_to_json(lines, tsv_fields, pointer)
     except FileNotFoundError:
         print(f"Error: The file '{filepath}' was not found.")
     except json.JSONDecodeError as err:
@@ -280,21 +286,18 @@ def parse_tsv_to_json(lines, tsv_fields, pointer):
     # empty
     if len(tsv_fields) > 0:
         for line in lines:
+            print(line)
             # not JSON - tsv should not have {
             if line[0] == '{':
                 ret_val[0] = []
                 ret_val[1] = orig_pointer
                 return
             # empty
-            if len(line) == '\n':
-                ret_val[1] += 1
+            if line == '\n':
                 continue
             # skip except the fields
             if line[0] == "#":
-                if line.endswith("\n"):
-                    ret_val[1] += len(line) + 1
-                else:
-                    ret_val[1] += len(line)
+                ret_val[1] += len(line)
                 continue
             # split by the tab
             elements = [idx.strip() for idx in line.split('\t')]
@@ -304,14 +307,10 @@ def parse_tsv_to_json(lines, tsv_fields, pointer):
             if len(elements) == len(tsv_fields):
                 temp = {tsv_fields[idx]: elements[idx] for idx in range(len(tsv_fields))}    
                 data.append(temp)
-            if line.endswith("\n"):
-                ret_val[1] += len(line) + 1
-            else:
-                ret_val[1] += len(line)
+            ret_val[1] += len(line)
     # no file was loaded
     if ret_val[0] == []:
         ret_val[1] = -1
-
     return ret_val
 
 
@@ -358,6 +357,19 @@ def parse_text_to_json(lines, pointer):
     return ret_val
 
 
+def validate_file_tsv(filepath):
+    # field names for appended data
+    with open(filepath, mode='r', encoding='utf-8-sig') as file:
+        first_line = file.readline()
+        if first_line[0].strip() == "{":
+            return False
+        lines = file.readlines()
+        for line in lines:
+            if ':' in line:
+                return False
+        return True
+        
+
 def read_log_to_json(filepath, pointer):
     """
         read log if it's a JSON or TSV
@@ -377,26 +389,34 @@ def read_log_to_json(filepath, pointer):
     if pointer == -1:
         return ret_val
     try:
+        tsv_flag = validate_file_tsv(filepath)
         with open(filepath) as file:
-            # file load with the position
-            print(filepath, pointer, os.path.getsize(filepath))
-            file.seek(pointer)
+            # json
+            if not tsv_flag:
+                file.seek(pointer)
+                # if the pointer is at the end of the file
+                if file.tell() == os.path.getsize(filepath):
+                    return ret_val
+                lines = file.readlines()
+                ret_val = parse_text_to_json(lines, pointer)
+                if ret_val[1] > 0:
+                    return ret_val
+            # tsv - it can be optimized later on..
+            # but for the functionality, I will leave it like this
+            if tsv_flag:
+                lines = file.readlines()
+                tsv_fields = get_fields_from_tsv(lines)
+            file.close()
+
+        with open(filepath) as file:
+            file.seek(pointer) 
             # if the pointer is at the end of the file
             if file.tell() == os.path.getsize(filepath):
                 return ret_val
-            lines = file.readlines()       
-            # json
-            ret_val = parse_text_to_json(lines, pointer)
-            if ret_val[1] > 0:
-                return ret_val
-            # tsv
-            tsv_fields = get_fields_from_tsv(lines)
-            print(tsv_fields)
+            lines = file.readlines()
             if len(tsv_fields) > 0:
                 # pointer resets
                 return parse_tsv_to_json(lines, tsv_fields, pointer)
-            # exist
-            ret_val[1] = file.tell()
     except FileNotFoundError:
         print(f"Error: The file '{filepath}' was not found.")
     except json.JSONDecodeError as err:
@@ -448,7 +468,7 @@ def reformat_to_json(filepath, pointer):
         sys.exit(1)
     except json.JSONDecodeError as err:
         print(f'JSON Decode Error - File Name: {filepath}.. {err}\n\
-        #        Please check the file format...')
+                #Please check the file format...')
         # invalid format.. skip
         ret_val[0] = []
         ret_val[1] = -1

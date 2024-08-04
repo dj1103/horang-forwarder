@@ -41,7 +41,6 @@ from modules.forwarder_arg import Locator
 
 ## horang forwarder ##
 
-
 def load_data(filepath, pointer):
     """
     Load data from the pointer position
@@ -55,6 +54,23 @@ def load_data(filepath, pointer):
         _a list with data and pointer_ (_list_): _returns JSON data list and pointer_
     """
     ret_val = [[], pointer]
+    # flagged files for invalid formats or invalid fils
+    if pointer == -1:
+        return ret_val
+    
+    # common file extensions to ignore and skip - feel free to add
+    file_extension = ["exe", "bin", "__", "py", "pyc"]
+    private_extension = ["__"]
+
+    # extention checker
+    for idx in file_extension:
+        if filepath.lower().endswith(idx):
+            return ret_val
+    for idx in private_extension:
+        if filepath.lower().startswith(idx):
+            return ret_val
+    #print("Debug: ", filepath, pointer, os.path.getsize(filepath))
+    # only allows .log, .json, ndjson, .log, .csv 
     if validate_file_json(filepath):
         return read_to_json(filepath, pointer)
     elif validate_file_csv(filepath):
@@ -103,7 +119,7 @@ def monitor_directory(locator=None):
                     if data and pointer > 0:
                         print(f'[INFO] Sucessfully loaded the "{locator.filename}\" file now...', \
                               flush=True)
-                        print(filepath, data)
+                        #print("Debug :", filepath, data)
                         print(f'[INFO] Please wait....', flush=True)
                     ######################################################################
                     # Successfully loaded data as JSON, then load the JSON/s to the SIEM #
