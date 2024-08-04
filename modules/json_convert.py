@@ -320,10 +320,6 @@ def parse_tsv_to_json(lines, tsv_fields, pointer):
             if len(elements) == len(tsv_fields):
                 temp = {tsv_fields[idx]: elements[idx] for idx in range(len(tsv_fields))}    
                 data.append(temp)
-
-        # no file was loaded
-        if ret_val[0] == []:
-            ret_val[1] = -1
     return ret_val
 
 
