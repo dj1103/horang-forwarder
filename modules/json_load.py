@@ -116,12 +116,12 @@ def connect_elk_db():
         else:
             return None
         # connecting to the DB..
-        print(f'Connecting to {ip}..... Please wait...', \
+        print(f'[INFO] Connecting to {ip}..... Please wait...', \
               flush=True)
         client.info()
         return client
     except Exception as err:
-        print(f'\nUnable to connect to the ELK DB (http://{ip}:{port})\n{err}', \
+        print(f'\n[ERROR] Unable to connect to the ELK DB (http://{ip}:{port})\n{err}', \
                 flush=True)
         return None
     
@@ -144,8 +144,9 @@ def load_json_to_elk(locator=None, json_val=[]):
     # no data to send.
     if len(json_val) == 0:
         return False
+
     if locator == None or locator.client == None:
-        print("No connection to the SIEM...... Please press ctrl-c")
+        print("[ALERT] No connection to the SIEM...... Please press ctrl-c")
         return False
     # one index
     if isinstance(json_val, dict):
