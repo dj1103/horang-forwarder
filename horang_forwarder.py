@@ -78,6 +78,9 @@ def load_data(filepath, pointer):
     elif validate_file_log(filepath):
         return read_log_to_json(filepath, pointer)
     elif validate_file_gz(filepath):
+        ret_val = read_gz_to_json(filepath, pointer)
+        # run only one time
+        ret_val[1] = -1
         return read_gz_to_json(filepath, pointer)
     else:
         return ret_val
@@ -130,8 +133,6 @@ def monitor_directory(locator=None):
                     # if succefully loaded
                     if ret == True:
                         locator.set_filelocator(filepath, pointer)
-                    else:
-                        time.sleep(locator.interval)
             time.sleep(locator.interval)
     except Exception as err:
         print(f'[ERROR] Closing out... due to {err}')

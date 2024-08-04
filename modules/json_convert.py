@@ -115,6 +115,7 @@ def read_gz_to_json(filepath, pointer):
         return ret_val
     try:  
         tsv_flag = validate_file_tsv(filepath)
+        tsv_fields = []
         with gzip.open(filepath, mode="rt") as file:
             # json
             if not tsv_flag:
@@ -126,26 +127,30 @@ def read_gz_to_json(filepath, pointer):
                 ret_val = parse_text_to_json(lines, pointer)
                 if ret_val[1] > 0:
                     return ret_val
-            # tsv
+            # tsv - it can be optimized later on..
+            # but for the functionality, I will leave it like this
             if tsv_flag:
                 lines = file.readlines()
                 tsv_fields = get_fields_from_tsv(lines)
-                #print(filepath, pointer, os.path.getsize(filepath), tsv_fields)
-                file.seek(pointer)
-                # if the pointer is at the end of the file
-                if file.tell() == os.path.getsize(filepath):
-                    return ret_val
+            file.close()
 
-                if len(tsv_fields) > 0:
-                    # pointer resets
-                    return parse_tsv_to_json(lines, tsv_fields, pointer)
+        with gzip.open(filepath, mode="rt") as file:
+            # solved it!!!!!!! fianlly
+            # last line # 
+            # if the pointer is at the end of the file
+            if file.seek(pointer) == os.path.getsize(filepath):
+                return ret_val
+            lines = file.readlines()
+            #print(lines, tsv_fields, pointer, os.path.getsize(filepath))
+            if len(tsv_fields) > 0:
+                return parse_tsv_to_json(lines, tsv_fields, pointer)
     except FileNotFoundError:
         print(f"Error: The file '{filepath}' was not found.")
     except json.JSONDecodeError as err:
         # invalid format.. skip
         ret_val[1] = -1
     except Exception as err:
-        print(f'Error: {err} - {filepath} file..')
+        print(f'[ERROR] {err} - {filepath} file..')
         ret_val[1] = -1
     return ret_val     
 
@@ -196,11 +201,11 @@ def read_csv_to_json(csv_file, pointer):
                         ret_val[1] += len(line)
     # unknown errors or unable to covert
     except FileNotFoundError:
-        print(f"Error: The file '{csv_file}' was not found.")
+        print(f"[ERROR] The file '{csv_file}' was not found.")
     except csv.Error as err:
-        print(f"Error reading CSV file '{csv_file}': {err}")
+        print(f"[ERROR] reading CSV file '{csv_file}': {err}")
     except Exception as err:
-        print(f'Unable to convert the {csv_file} file.. Error: {err}')
+        print(f'[ERROR] Unable to convert the {csv_file} file.. Error: {err}')
 
     return ret_val
 
@@ -227,12 +232,12 @@ def read_to_json(filepath, pointer):
 
     # unknown errors or unable to covert
     except FileNotFoundError:
-        print(f"Error: The file '{filepath}' was not found.")
+        print(f"[ERROR] The file '{filepath}' was not found.")
     except json.JSONDecodeError as err:
         # failover try...
         ret_val = reformat_to_json(filepath, pointer)
     except Exception as err:
-        print(f'Error: {err} - {filepath} file..')
+        print(f'[ERROR] {err} - {filepath} file..')
         ret_val[1] = -1
     return ret_val
 
@@ -286,20 +291,28 @@ def parse_tsv_to_json(lines, tsv_fields, pointer):
     # empty
     if len(tsv_fields) > 0:
         for line in lines:
-            print(line)
             # not JSON - tsv should not have {
             if line[0] == '{':
                 ret_val[0] = []
                 ret_val[1] = orig_pointer
-                return
+                return ret_val
             # empty
             if line == '\n':
+                ret_val[1] += 1
                 continue
             # skip except the fields
             if line[0] == "#":
-                ret_val[1] += len(line)
+                if line.endswith("\n"):
+                    ret_val[1] += len(line) + 1
+                else:
+                    ret_val[1] += len(line)
+        # no file was loaded
                 continue
             # split by the tab
+            if line.endswith("\n"):
+                ret_val[1] += len(line) + 1
+            else:
+                ret_val[1] += len(line)
             elements = [idx.strip() for idx in line.split('\t')]
             # fail over - no tab.. space
             if len(elements) == 1 and '\t' not in line:
@@ -307,10 +320,10 @@ def parse_tsv_to_json(lines, tsv_fields, pointer):
             if len(elements) == len(tsv_fields):
                 temp = {tsv_fields[idx]: elements[idx] for idx in range(len(tsv_fields))}    
                 data.append(temp)
-            ret_val[1] += len(line)
-    # no file was loaded
-    if ret_val[0] == []:
-        ret_val[1] = -1
+
+        # no file was loaded
+        if ret_val[0] == []:
+            ret_val[1] = -1
     return ret_val
 
 
@@ -359,16 +372,27 @@ def parse_text_to_json(lines, pointer):
 
 def validate_file_tsv(filepath):
     # field names for appended data
-    with open(filepath, mode='r', encoding='utf-8-sig') as file:
-        first_line = file.readline()
-        if first_line[0].strip() == "{":
-            return False
-        lines = file.readlines()
-        for line in lines:
-            if ':' in line:
+    if filepath.lower().endswith("gz"):
+        with gzip.open(filepath, mode="rt") as file:
+            first_line = file.readline()
+            if first_line[0].strip() == "{":
                 return False
-        return True
-        
+            lines = file.readlines()
+            for line in lines:
+                if ':' in line:
+                    return False
+            return True
+    else:
+        with open(filepath, mode='r', encoding='utf-8-sig') as file:
+            first_line = file.readline()
+            if first_line[0].strip() == "{":
+                return False
+            lines = file.readlines()
+            for line in lines:
+                if ':' in line:
+                    return False
+            return True
+            
 
 def read_log_to_json(filepath, pointer):
     """
@@ -390,6 +414,7 @@ def read_log_to_json(filepath, pointer):
         return ret_val
     try:
         tsv_flag = validate_file_tsv(filepath)
+        tsv_fields = []
         with open(filepath) as file:
             # json
             if not tsv_flag:
@@ -409,21 +434,22 @@ def read_log_to_json(filepath, pointer):
             file.close()
 
         with open(filepath) as file:
-            file.seek(pointer) 
+            # solved it!!!!!!! fianlly
+            # last line # 
             # if the pointer is at the end of the file
-            if file.tell() == os.path.getsize(filepath):
+            if file.seek(pointer) == os.path.getsize(filepath):
                 return ret_val
             lines = file.readlines()
+            #print(lines, tsv_fields, pointer, os.path.getsize(filepath))
             if len(tsv_fields) > 0:
-                # pointer resets
                 return parse_tsv_to_json(lines, tsv_fields, pointer)
     except FileNotFoundError:
-        print(f"Error: The file '{filepath}' was not found.")
+        print(f"[ERROR] The file '{filepath}' was not found.")
     except json.JSONDecodeError as err:
         # invalid format.. skip
         ret_val[1] = -1
     except Exception as err:
-        print(f'Error: {err} - {filepath} file..')
+        print(f'[ERROR] {err} - {filepath} file..')
         ret_val[1] = -1
     return ret_val        
 
@@ -464,15 +490,15 @@ def reformat_to_json(filepath, pointer):
     
     except FileNotFoundError:
         # unknown errors or unable to covert
-        print(f"Error: The file '{filepath}' was not found.")
+        print(f"[ERROR] The file '{filepath}' was not found.")
         sys.exit(1)
     except json.JSONDecodeError as err:
-        print(f'JSON Decode Error - File Name: {filepath}.. {err}\n\
-                #Please check the file format...')
+        print(f'[ERROR] JSON Decode Error - File Name: {filepath}.. {err}\n\
+                # Please check the file format...')
         # invalid format.. skip
         ret_val[0] = []
         ret_val[1] = -1
     except Exception as err:
-        print(f'Error: {err} - {filepath} file..')
+        print(f'[ERROR]: {err} - {filepath} file..')
         sys.exit(1)
     return ret_val
