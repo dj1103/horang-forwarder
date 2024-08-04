@@ -33,6 +33,7 @@ import os
 import json
 import sys
 
+# CSV, JSON, NDJSON, log formats decoding
 
 def validate_file_csv(filename):
     '''
@@ -220,6 +221,15 @@ def read_to_json(filepath, pointer):
 
     # JSON Load
     try:
+        # NDJSON
+        with open(filepath, mode='r', encoding='utf-8-sig') as file:
+            first_line = file.readline()
+            if first_line.startswith('{') and\
+                first_line.strip().endswith('}'):
+                file.close()
+                return reformat_to_json(filepath, pointer)
+            file.close()
+        # JSON
         with open(filepath, 'r', encoding='utf-8-sig') as file:
             # file load with the position
             file.seek(pointer)
@@ -234,8 +244,8 @@ def read_to_json(filepath, pointer):
     except FileNotFoundError:
         print(f"[ERROR] The file '{filepath}' was not found.")
     except json.JSONDecodeError as err:
-        # failover try...
-        ret_val = reformat_to_json(filepath, pointer)
+        print(f'[ERROR] Decode Error {err} - {filepath} file..')
+        ret_val[1] = -1
     except Exception as err:
         print(f'[ERROR] {err} - {filepath} file..')
         ret_val[1] = -1
@@ -450,7 +460,6 @@ def read_log_to_json(filepath, pointer):
 def reformat_to_json(filepath, pointer):
     """
         if load_to_json function fails, then the format needs to reload
-        Fail-over function to cover the format
 
     Args:
         filepath (_str_): _full path and file name_
@@ -479,7 +488,10 @@ def reformat_to_json(filepath, pointer):
                     continue
                 line_json = json.loads(line)
                 data.append(line_json)
-                ret_val[1] += len(line)
+                if line.endswith("\n"):
+                    ret_val[1] += len(line) + 1
+                else:
+                    ret_val[1] += len(line)
     
     except FileNotFoundError:
         # unknown errors or unable to covert

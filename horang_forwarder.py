@@ -38,6 +38,7 @@ from modules.json_load import load_json_to_elk
 from modules.forwarder_arg import validate_args
 from modules.forwarder_arg import Locator
 
+DEBUG_FLAG = False
 
 ## horang forwarder ##
 
@@ -69,7 +70,8 @@ def load_data(filepath, pointer):
     for idx in private_extension:
         if filepath.lower().startswith(idx):
             return ret_val
-    #print("Debug: ", filepath, pointer, os.path.getsize(filepath))
+    if DEBUG_FLAG:
+        print("### [DEBUG]", filepath, pointer, os.path.getsize(filepath))
     # only allows .log, .json, ndjson, .log, .csv 
     if validate_file_json(filepath):
         return read_to_json(filepath, pointer)
@@ -122,7 +124,8 @@ def monitor_directory(locator=None):
                     if data and pointer > 0:
                         print(f'[INFO] Sucessfully loaded the "{locator.filename}\" file now...', \
                               flush=True)
-                        #print("Debug :", filepath, data)
+                        if DEBUG_FLAG:
+                            print("### [DEBUG] ", filepath, "Length:", len(data))
                         print(f'[INFO] Please wait....', flush=True)
                     ######################################################################
                     # Successfully loaded data as JSON, then load the JSON/s to the SIEM #
