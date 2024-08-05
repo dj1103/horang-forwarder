@@ -37,7 +37,7 @@ from modules.json_load import load_json_to_elk
 from modules.forwarder_arg import validate_args
 from modules.forwarder_arg import Locator
 
-DEBUG_FLAG = True
+DEBUG_FLAG = False
 
 ## horang forwarder ##
 
@@ -67,7 +67,7 @@ def load_data(filepath, pointer):
         if filepath.lower().endswith(idx):
             return ret_val
     for idx in private_extension:
-        if filepath.lower().startswith(idx):
+        if idx in filepath:
             return ret_val
     if DEBUG_FLAG:
         print("### [DEBUG]", filepath, pointer, os.path.getsize(filepath))
@@ -116,15 +116,15 @@ def monitor_directory(locator=None):
                         if pointer == -1:
                             # ignore the file..
                             locator.set_filelocator(filepath, pointer)
-                            # break for invalid format mapping to pass the next time
-                            time.sleep(locator.interval)
+                        # break for invalid format mapping to pass the next time
+                        time.sleep(locator.interval)
                         continue
-                    if data and pointer > 0:
-                        print(f'[INFO] Sucessfully loaded the "{locator.filename}\" file now...', \
+                    if data and pointer > locator.get_filepointer(filepath):
+                        print(f'[INFO] Sucessfully loaded the "{locator.filename}\"; JSON Index count: \"{len(data)}\" file now...', \
                               flush=True)
                         if DEBUG_FLAG:
-                            print("### [DEBUG] ", filepath, "Length:", len(data))
-                        print(f'[INFO] Please wait....', flush=True)
+                            print("[DEBUG] ", filepath, "Data Length:", len(data))
+                        print(f'[INFO] Please wait....\n', flush=True)
                     ######################################################################
                     # Successfully loaded data as JSON, then load the JSON/s to the SIEM #
                     # possibly add threads for future                                    #

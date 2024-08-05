@@ -34,6 +34,7 @@ import json
 import sys
 from modules.helper import get_uncompressed_size
 
+
 # CSV, JSON, NDJSON, log formats decoding
 
 def validate_file_csv(filename):
@@ -113,30 +114,29 @@ def read_gz_to_json(filepath, pointer):
     if pointer == -1:
         return ret_val
 
-    try:  
+    try:
+        # TSV type handling
         tsv_flag = validate_file_tsv(filepath)
         file_size = get_uncompressed_size(filepath)
         # TSV Format
         if tsv_flag:
             tsv_fields = get_fields_from_tsv(filepath)
-            with gzip.open(filepath, mode="rt") as file:
+            with gzip.open(filepath, mode='r', encoding='utf-8-sig') as file:
                 # if the pointer is at the end of the file
                 if file.seek(pointer) == file_size:
                     return ret_val            
                 lines = file.readlines()
-                #print(lines, tsv_fields, pointer, os.path.getsize(filepath))
                 if len(tsv_fields) > 0:
                     return parse_tsv_to_json(lines, tsv_fields, pointer)
         # JSON Format
         else:        
-            with gzip.open(filepath, mode="rt") as file:
+            with gzip.open(filepath, mode='r', encoding='utf-8-sig') as file:
                 # if the pointer is at the end of the file
                 if file.seek(pointer) == file_size:
                     return ret_val
                 lines = file.readlines()
-                #print(lines, tsv_fields, pointer, os.path.getsize(filepath))
-                if len(tsv_fields) > 0:
-                    return parse_tsv_to_json(lines, tsv_fields, pointer)
+                return parse_text_to_json(lines, pointer)
+
     except FileNotFoundError:
         print(f"Error: The file '{filepath}' was not found.")
     except json.JSONDecodeError as err:
@@ -182,23 +182,21 @@ def read_csv_to_json(csv_file, pointer):
             else:
                 lines = file.readlines()
                 for line in lines:
-                    if line == '\n':
-                        ret_val[1] += 1
-                        continue
+                    line_bytes = line.encode('utf-8')
+                    line_length = len(line_bytes)
+                    ret_val[1] += line_length
                     if ',' in line:
                         values = [idx.strip() for idx in line.strip().split(',')]
-                        ret_val[1] += len(line)
                         mapped_data = {field_names[idx]: values[idx] for idx in range(len(field_names))}
                         ret_val[0].append(mapped_data)
-                    else:
-                        ret_val[1] += len(line)
+                        
     # unknown errors or unable to covert
     except FileNotFoundError:
         print(f"[ERROR] The file '{csv_file}' was not found.")
     except csv.Error as err:
         print(f"[ERROR] reading CSV file '{csv_file}': {err}")
     except Exception as err:
-        print(f'[ERROR] Unable to convert the {csv_file} file.. Error: {err}')
+        print(f'[ERROR] {err}..')
 
     return ret_val
 
@@ -215,7 +213,9 @@ def read_to_json(filepath, pointer):
     try:
         # NDJSON
         with open(filepath, mode='r', encoding='utf-8-sig') as file:
+            # read the first line
             first_line = file.readline()
+            # if it's a JSON format
             if first_line.startswith('{') and\
                 first_line.strip().endswith('}'):
                 file.close()
@@ -307,16 +307,18 @@ def parse_tsv_to_json(lines, tsv_fields, pointer):
     orig_pointer = pointer
     ret_val = [data, pointer]
 
-    # Process each line
+    # rocess each line
     for line in lines:
-        # Handle JSON lines or empty fields
+        # handle JSON lines or empty fields
         if line.startswith('{'):
             return [[], orig_pointer]
+        
+        # remove empty line and add
         if line.strip() == "":
             pointer += len(line)
             continue
         
-        # Handle commented lines
+        # handle commented lines
         if line.startswith("#"):
             pointer += len(line)
             continue
@@ -326,7 +328,7 @@ def parse_tsv_to_json(lines, tsv_fields, pointer):
         if len(elements) == 1 and '\t' not in line:
             elements = [ele for ele in line.strip().split(' ') if ele]
 
-        # Only process lines with the correct number of fields
+        # only process lines with the correct number of fields
         if len(elements) == len(tsv_fields):
             record = {tsv_fields[idx]: elements[idx] for idx in range(len(tsv_fields))}
             data.append(record)
@@ -394,7 +396,7 @@ def parse_text_to_json(lines, pointer):
 def validate_file_tsv(filepath):
     # field names for appended data
     if filepath.lower().endswith("gz"):
-        with gzip.open(filepath, mode="rt") as file:
+        with gzip.open(filepath, mode='r', encoding='utf-8-sig') as file:
             # first 5 lines checking to see if it's a TSV
             counts = 5
             for idx in range(0, counts):
@@ -466,14 +468,11 @@ def read_log_to_json(filepath, pointer):
         # JSON Format
         else:        
             with open(filepath, mode='r', encoding='utf-8-sig') as file:
-                file.seek(pointer)
                 # if the pointer is at the end of the file
                 if file.seek(pointer) == os.path.getsize(filepath):
                     return ret_val
                 lines = file.readlines()
                 ret_val = parse_text_to_json(lines, pointer)
-                if ret_val[1] > 0:
-                    return ret_val
     except FileNotFoundError:
         print(f"[ERROR] The file '{filepath}' was not found.")
     except json.JSONDecodeError as err:
@@ -509,18 +508,19 @@ def reformat_to_json(filepath, pointer):
             # if the pointer is at the end of the file
             if file.tell() == os.path.getsize(filepath):
                 return ret_val
-            lines = file.readlines()
-            for line in lines:
+            # pythonic way to load
+            for line in file:
                 if line == '\n':
                     ret_val[1] += 1
                     continue
+                # json load
                 line_json = json.loads(line)
                 data.append(line_json)
+                # new line + 1 
                 if line.endswith("\n"):
                     ret_val[1] += len(line) + 1
                 else:
                     ret_val[1] += len(line)
-            parse_text_to_json(lines, pointer)
     except FileNotFoundError:
         # unknown errors or unable to covert
         print(f"[ERROR] The file '{filepath}' was not found.")
