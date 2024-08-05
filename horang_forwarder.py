@@ -24,7 +24,6 @@
 import os
 import time
 import sys
-import json
 from modules.json_convert import validate_file_csv
 from modules.json_convert import validate_file_json
 from modules.json_convert import validate_file_gz
@@ -38,7 +37,7 @@ from modules.json_load import load_json_to_elk
 from modules.forwarder_arg import validate_args
 from modules.forwarder_arg import Locator
 
-DEBUG_FLAG = False
+DEBUG_FLAG = True
 
 ## horang forwarder ##
 
@@ -79,10 +78,9 @@ def load_data(filepath, pointer):
         return read_csv_to_json(filepath, pointer)
     elif validate_file_log(filepath):
         return read_log_to_json(filepath, pointer)
-    elif validate_file_gz(filepath):
-        ret_val = read_gz_to_json(filepath, pointer)
+    # under maintainance
+    # elif validate_file_gz(filepath):
         # run only one time
-        ret_val[1] = -1
         return read_gz_to_json(filepath, pointer)
     else:
         return ret_val
