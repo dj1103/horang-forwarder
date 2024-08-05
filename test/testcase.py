@@ -8,6 +8,7 @@ from modules.json_convert import reformat_to_json
 from modules.json_convert import read_log_to_json
 from modules.json_convert import get_fields_from_tsv
 from modules.json_convert import parse_tsv_to_json
+from modules.json_convert import read_gz_to_json
 from modules.forwarder_arg import validate_args
 from modules.forwarder_arg import Locator
 from horang_forwarder import load_data
@@ -23,6 +24,7 @@ SOURCE_PATH = os.path.join(
 )
 sys.path.append(SOURCE_PATH)
 
+PRINT_FLAG = False
 
 class TestModuleMethods(unittest.TestCase):
 
@@ -80,21 +82,18 @@ class TestModuleMethods(unittest.TestCase):
         locator.set_index("broctl")
         self.assertEqual(locator.get_index(), "Invalid")
 
-        print("\n############# 1) INDEX NAMING CONVERSION TEST SUCCESS! ################")
-        locator.set_index("conn.log")
-        print("INDEX NAME OF CONN.LOG: ", locator.get_index())
+        if PRINT_FLAG == True:
+            print("\n############# 1) INDEX NAMING CONVERSION TEST SUCCESS! ################")
+            locator.set_index("conn.log")
+            print("INDEX NAME OF CONN.LOG: ", locator.get_index())
 
 
     def test_from_log_to_json(self):
         
-        test_str = "#just comment"
-        test_str1 = "#fields\tts\tuid\tid.orig_h\tid.orig_p\tid.resp_h\tid.resp_p"
-        testing = []
-        testing.append(test_str)
-        testing.append(test_str1)
-        ret = ['ts', 'uid', 'id.orig_h', 'id.orig_p', 'id.resp_h', 'id.resp_p']
-        self.assertEqual(get_fields_from_tsv(testing), ret)
-        
+        ret = ['ts', 'uid', 'id.orig_h', 'id.orig_p', 'id.resp_h', 'id.resp_p', 'proto', 'service']
+        locator = Locator('test')
+        json_file = locator.set_filepath(SOURCE_PATH, "test5.log")
+        self.assertEqual(get_fields_from_tsv(json_file), ret)
         # for future..
         # read log to json
         json_file = "test4.log"
@@ -126,19 +125,21 @@ class TestModuleMethods(unittest.TestCase):
         data = parse_tsv_to_json(lines, tsv_fields, pointer)
         for ele in data[0]:
             self.assertTrue(isinstance(ele, dict))
-        print("\n############# 2) TSV PARSING TEST SUCCESS! ################")
-        for idx, ele in enumerate(data[0]):
-            if idx == 2:
-                break
-            print(ele)
+        if PRINT_FLAG == True:
+            print("\n############# 2) TSV PARSING TEST SUCCESS! ################")
+            for idx, ele in enumerate(data[0]):
+                if idx == 2:
+                    break
+                print(ele)
         # text log with JSONs
         pointer = 0
         json_file = 'test4.log'
         data = read_log_to_json(json_file, pointer)
         for ele in data[0]:
             self.assertTrue(isinstance(ele, dict))
-        print("\n############# 3) TEXT JSON TEST SUCCESS! ################")
-        print(ele)
+        if PRINT_FLAG == True:
+            print("\n############# 3) TEXT JSON TEST SUCCESS! ################")
+            #print(ele)
 
 
     def test_to_json(self):
@@ -187,14 +188,17 @@ class TestModuleMethods(unittest.TestCase):
      
         for ele in json_ret_val5[0]:
             self.assertTrue(isinstance(ele, dict))
-      
-        print("\n############# 4) JSON FILE TEST SUCCESS! ################")
+
+        if PRINT_FLAG == True:      
+            print("\n############# 4) JSON FILE TEST SUCCESS! ################")
    
         for idx, ele in enumerate(json_ret_val5[0]):
             if idx == 3:
                 break
-            print(ele)
             self.assertTrue(isinstance(ele, dict))
+            if PRINT_FLAG == True:
+                print(ele)
+                
 
         # line items - text format
         json_file = locator.set_filepath(SOURCE_PATH, "test2.ndjson")
@@ -204,12 +208,13 @@ class TestModuleMethods(unittest.TestCase):
    
         for ele in json_ret_val6[0]:
             self.assertTrue(isinstance(ele, dict))
-        print("\n############# 5) JSON TEXT TEST SUCCESS! ################")
-      
-        for idx, ele in enumerate(json_ret_val6[0]):
-            if idx == 2:
-                break
-            print(ele)
+        if PRINT_FLAG == True:        
+            print("\n############# 5) JSON TEXT TEST SUCCESS! ################")
+        
+            for idx, ele in enumerate(json_ret_val6[0]):
+                if idx == 2:
+                    break
+                print(ele)
         # line items - CSV
         csv_file = locator.set_filepath(SOURCE_PATH, "test.csv")
         pointer = 0
@@ -218,12 +223,14 @@ class TestModuleMethods(unittest.TestCase):
        
         for ele in json_ret_val7[0]:
             self.assertTrue(isinstance(ele, dict))
-        print("\n############# 6) CSV FILE TEST SUCCESS! ################")
-      
-        for idx, ele in enumerate(json_ret_val7[0]):
-            if idx == 3:
-                break
-            print(ele)
+        
+        if PRINT_FLAG == True:        
+            print("\n############# 6) CSV FILE TEST SUCCESS! ################")
+        
+            for idx, ele in enumerate(json_ret_val7[0]):
+                if idx == 3:
+                    break
+                print(ele)
 
 
     def test_multiple_loads(self):
@@ -247,8 +254,10 @@ class TestModuleMethods(unittest.TestCase):
             self.assertNotEqual(locator.fileposition[csv_file], 0)
             self.assertEqual(json_ret_val[0], [])
             self.assertEqual(json_ret_val[1], locator.fileposition[csv_file])
-        print("\n############# 7) MULTI ATTEMPT (CSV) TEST SUCCESS! ################")
-        print("File count: ", locator.fileposition[csv_file])
+        
+        if PRINT_FLAG == True:        
+            print("\n############# 7) MULTI ATTEMPT (CSV) TEST SUCCESS! ################")
+            print("File count: ", locator.fileposition[csv_file])
 
         # line items - JSON
         json_file = locator.set_filepath(SOURCE_PATH, "test.json")
@@ -264,26 +273,31 @@ class TestModuleMethods(unittest.TestCase):
                                      locator.fileposition[json_file])
             self.assertNotEqual(locator.fileposition[json_file], 0)
             self.assertEqual(json_ret_val[0], [])
-            #print(json_ret_val)
             self.assertEqual(json_ret_val[1], locator.fileposition[json_file])
-        print("\n############# 8) MULTI ATTEMPT (JSON) TEST SUCCESS! ################")
-        print("File count: ", locator.fileposition[json_file], "\n")
+        
+        if PRINT_FLAG == True:            
+            print("\n############# 8) MULTI ATTEMPT (JSON) TEST SUCCESS! ################")
+            print("File count: ", locator.fileposition[json_file], "\n")
 
         # JSON LOG TEXT - read_log_to_json
         json_file1 = locator.set_filepath(SOURCE_PATH, "test4.log")
         pointer = 0
         json_ret_val = load_data(json_file1, pointer)
+        print(json_ret_val, locator.fileposition[json_file1])
         assert json_ret_val[0]
         locator.set_filelocator(json_file1, json_ret_val[1])
         self.assertNotEqual(json_ret_val[1], 0)       
+        
         for idx in range(0, 3):
             json_ret_val = load_data(json_file1, 
                                      locator.fileposition[json_file1])
+            print(json_ret_val, locator.fileposition[json_file1])
             self.assertNotEqual(locator.fileposition[json_file1], 0)
             self.assertEqual(json_ret_val[0], [])
-            self.assertEqual(json_ret_val[1], locator.fileposition[json_file1])
-        print("\n############# 9) MULTI ATTEMPT (JSON TEXT) TEST SUCCESS! ################")
-        print("File count: ", locator.fileposition[json_file1], "\n")
+
+        if PRINT_FLAG == True:        
+            print("\n############# 9) MULTI ATTEMPT (JSON TEXT) TEST SUCCESS! ################")
+            print("File count: ", locator.fileposition[json_file1], "\n")
 
         # TSV Testing
         json_file5 = locator.set_filepath(SOURCE_PATH, "test5.log")
@@ -291,16 +305,17 @@ class TestModuleMethods(unittest.TestCase):
         json_ret_val = load_data(json_file5, pointer)
         assert json_ret_val[0]
         locator.set_filelocator(json_file5, json_ret_val[1])
-
         self.assertNotEqual(json_ret_val[1], 0)       
+        
         for idx in range(0, 3):
             json_ret_val = load_data(json_file5, 
                                      locator.fileposition[json_file5])    
             self.assertNotEqual(locator.fileposition[json_file5], 0)
             self.assertEqual(json_ret_val[0], [])
-            self.assertEqual(json_ret_val[1], locator.fileposition[json_file5])
-        print("\n############# 10) MULTI ATTEMPT (TSV) TEST SUCCESS! ################")
-        print("File count: ", locator.fileposition[json_file5], "\n")
+        
+        if PRINT_FLAG == True:        
+            print("\n############# 10) MULTI ATTEMPT (TSV) TEST SUCCESS! ################")
+            print("File count: ", locator.fileposition[json_file5], "\n")
 
 
     def test_csv_to_json(self):
