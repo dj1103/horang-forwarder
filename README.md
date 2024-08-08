@@ -24,7 +24,7 @@ This Horang forwarder is a log forwarder using Python language that inspects mul
                          It is currently under development for other platforms.
                
      A designated main directory is the folder with multiple subdirectories and files.
-     The interval is optional. An interval of 10 seconds is recommended for the data ingestion rate.
+     The interval is optional. An interval of 10 seconds is by default for the data ingestion rate.
 
          python3 logforwarder.py <directory> [<interval>]
          Ex. python3 horang_forwarder.py /nsm/zeek/
