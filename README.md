@@ -1,13 +1,18 @@
 # Horang-Forwarder
 
+
 ## Description
 
 This Horang forwarder is a log forwarder using Python language that inspects multiple subdirectories within a designated leading directory for files. The script will routinely load files and append data to a user-defined database or SIEM. This script is designed to support users in automatically loading data to their SIEMs, forwarding the logs to the next node, or enriching the data with other sources.
 
+
      Currently, the script supports TSV, CSV, and various types of JSON, 
-     enabling the conversion of these formats into a list of JSONs (dictionary) or a singular JSON. 
+     enabling the conversion of these formats into a list of JSONs (dictionary) or a singular JSON.
+     
      Multiple unit tests have been carried out, and as of now, no issues have been identified. 
+     
      Please do not hesitate to reach out if you encounter any problems. Thank you.
+
      
 ## Usage
 
@@ -30,18 +35,22 @@ This Horang forwarder is a log forwarder using Python language that inspects mul
          Ex. python3 horang_forwarder.py /nsm/zeek/
          Ex. python3 horang_forwarder.py c:\users\myaccount\Desktop\zeek\
 
+
 ## Continous Integration and Continuos Development (CI/CD Pipeline)  
 
      You can check the status of the repo with the "Actions" tap or CI/CD pipeline.
+
 
 ## Unit Test
 
      python -m unittest
 
+
 ## Version
 
-Testing with Python 3.12, published on 2023-10-02, expires on 2028-10, PEP 693
-     https://www.python.org/downloads/
+     Testing with Python 3.12, published on 2023-10-02, expires on 2028-10, PEP 693
+          https://www.python.org/downloads/
+
 
 ## Dependency
 
@@ -51,6 +60,7 @@ Testing with Python 3.12, published on 2023-10-02, expires on 2028-10, PEP 693
              or python -m pip install elasticsearch
             API Key Management from Elastic
             https://www.elastic.co/guide/en/kibana/current/api-keys.html
+
 
 ## Future
 
@@ -77,10 +87,9 @@ Testing with Python 3.12, published on 2023-10-02, expires on 2028-10, PEP 693
              Ex. "curl -X POST "[ELASTIC HOST IP]:9200/?[INDEX]" 
         
 
-
 ## License and Copyright
 
-The Horang log forwarder is Copyright 2024 Dave Jang and licensed under the MIT License. See 'LICENSE' for the terms of its release.
+The Horang log forwarder is Copyright 2024 Dave Jang and licensed under the MIT License. See 'LICENSE' for the terms of its release. 
 
 https://opensource.org/license/mit
 
