@@ -4,17 +4,25 @@
 
 This Horang forwarder is a log forwarder using Python language that inspects multiple subdirectories within a designated leading directory for files. The script will routinely load files and append data to a user-defined database or SIEM. This script is designed to support users in automatically loading data to their SIEMs, forwarding the logs to the next node, or enriching the data with other sources.
 
-     Currently, the script supports TSV, CSV, and various types of JSON, enabling the conversion of these formats into a list of JSONs (dictionary) or a singular JSON. 
-     Multiple unit tests have been carried out, and as of now, no issues have been identified. Please do not hesitate to reach out if you encounter any problems. Thank you.
+     Currently, the script supports TSV, CSV, and various types of JSON, 
+     enabling the conversion of these formats into a list of JSONs (dictionary) or a singular JSON. 
+     Multiple unit tests have been carried out, and as of now, no issues have been identified. 
+     Please do not hesitate to reach out if you encounter any problems. Thank you.
      
 ## Usage
 
      [USAGE] python3 horang_forwarder.py <directory> [<interval>] [<dest option>]")
-          1. <directory> is madatory. Please define the directory to load data Ex. python3 horang_forwarder.py /nids
-          2. <Interval> is optional. A 10-second Interval is recommended for the data ingestion rate. Ex. python3 horang_forwarder.py <directory> 10
+          1. <directory> is madatory. Please define the directory to load data 
+               Ex. python3 horang_forwarder.py /nids
+          2. <Interval> is optional. A 10-second Interval is recommended for the data ingestion rate. 
+               Ex. python3 horang_forwarder.py <directory> 10
           3. <dest option> is optional. However, if you choose the destination option, then the interval is mandatory.")
-                Destination option: Only Elastic API using Python is currently available; it is currently under development for other platforms.
-     
+               Ex. python3 horang_forwarder.py /nids/zeek 10 1
+                     Destination option:
+                         Elastic API : 1
+                         Only Elastic API using Python is currently available.
+                         It is currently under development for other platforms.
+               
      A designated main directory is the folder with multiple subdirectories and files.
      The interval is optional. An interval of 10 seconds is recommended for the data ingestion rate.
 
