@@ -16,6 +16,12 @@ This Horang forwarder is a log forwarder using Python language that inspects mul
      
 ## Usage
 
+     Recommended steps:
+          python3 -m venv .venv       # virtual mapping for Python libraries
+          source .venv/bin/activate   # activate the virtual
+          pip install elasticsearch   # install Python Elasticsearch libary
+
+
      [USAGE] python3 horang_forwarder.py <directory> [<interval>] [<dest option>]")
           1. <directory> is madatory. Please define the directory to load data 
                Ex. python3 horang_forwarder.py /nids
