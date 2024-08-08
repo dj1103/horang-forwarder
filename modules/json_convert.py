@@ -118,6 +118,10 @@ def read_gz_to_json(filepath, pointer):
         # TSV type handling
         tsv_flag = validate_file_tsv(filepath)
         file_size = get_uncompressed_size(filepath)
+
+        if file_size == 0:
+            return ret_val
+
         # TSV Format
         if tsv_flag:
             tsv_fields = get_fields_from_tsv(filepath)
@@ -220,7 +224,6 @@ def read_to_json(filepath, pointer):
                 first_line.strip().endswith('}'):
                 file.close()
                 return reformat_to_json(filepath, pointer)
-            file.close()
         # JSON
         with open(filepath, 'r', encoding='utf-8-sig') as file:
             # file load with the position
@@ -244,6 +247,20 @@ def read_to_json(filepath, pointer):
     return ret_val
 
 
+def parse_tsv_from_line(line):
+    ret_val = []
+    if len(line) > 0:
+        ret_val = [idx.strip() for idx in line.split('\t')]
+        if len(ret_val) == 0:
+            temp = [idx.strip() for idx in line.split(' ')]
+            for idx in temp:
+                if not '\n' == idx:
+                    ret_val.append(idx)
+        if len(ret_val) == 1 and '\t' not in line:
+            ret_val = [idx.strip() for idx in line.split(' ') if idx.strip()]
+    return ret_val
+
+
 def get_fields_from_tsv(filepath):
     """
         get the field from tsv
@@ -256,19 +273,14 @@ def get_fields_from_tsv(filepath):
     ret_val = []
     try:
         if filepath.lower().endswith("gz"):
-            with gzip.open(filepath, mode="rt") as file:
+            with gzip.open(filepath, mode='r', encoding='utf-8-sig') as file:
                 for line in file:
                     if len(line) > 0 and \
                         line[0] == "#" and \
                         "fields" in line:
-                        ret_val = [idx.strip() for idx in line.split('\t')]
-                        if len(ret_val) == 0:
-                            temp = [idx.strip() for idx in line.split(' ')]
-                            for idx in temp:
-                                if not '\n' == idx:
-                                    ret_val.append(idx)
-                        if len(ret_val) == 1 and '\t' not in line:
-                            ret_val = [idx.strip() for idx in line.split(' ') if idx.strip()]
+                        # tsv to a list
+                        ret_val = parse_tsv_from_line(line)
+                        # remove "fields" string
                         ret_val.pop(0)
                         break
         else:
@@ -277,14 +289,9 @@ def get_fields_from_tsv(filepath):
                     if len(line) > 0 and \
                         line[0] == "#" and \
                         "fields" in line:
-                        ret_val = [idx.strip() for idx in line.split('\t')]
-                        if len(ret_val) == 0:
-                            temp = [idx.strip() for idx in line.split(' ')]
-                            for idx in temp:
-                                if not '\n' == idx:
-                                    ret_val.append(idx)
-                        if len(ret_val) == 1 and '\t' not in line:
-                            ret_val = [idx.strip() for idx in line.split(' ') if idx.strip()]
+                        # tsv to a list
+                        ret_val = parse_tsv_from_line(line)
+                        # remove "fields" string
                         ret_val.pop(0)
                         break
     except ValueError:

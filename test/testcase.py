@@ -283,7 +283,6 @@ class TestModuleMethods(unittest.TestCase):
         json_file1 = locator.set_filepath(SOURCE_PATH, "test4.log")
         pointer = 0
         json_ret_val = load_data(json_file1, pointer)
-        print(json_ret_val, locator.fileposition[json_file1])
         assert json_ret_val[0]
         locator.set_filelocator(json_file1, json_ret_val[1])
         self.assertNotEqual(json_ret_val[1], 0)       
@@ -291,7 +290,6 @@ class TestModuleMethods(unittest.TestCase):
         for idx in range(0, 3):
             json_ret_val = load_data(json_file1, 
                                      locator.fileposition[json_file1])
-            print(json_ret_val, locator.fileposition[json_file1])
             self.assertNotEqual(locator.fileposition[json_file1], 0)
             self.assertEqual(json_ret_val[0], [])
 

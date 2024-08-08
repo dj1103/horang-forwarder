@@ -120,7 +120,7 @@ def monitor_directory(locator=None):
                         time.sleep(locator.interval)
                         continue
                     if data and pointer > locator.get_filepointer(filepath):
-                        print(f'[INFO] Sucessfully loaded the "{locator.filename}\"; JSON Index count: \"{len(data)}\" file now...', \
+                        print(f'[INFO] Sucessfully loaded the "{locator.filename}\" file; JSON Index count: \"{len(data)}\" now...', \
                               flush=True)
                         if DEBUG_FLAG:
                             print("[DEBUG] ", filepath, "Data Length:", len(data))
@@ -130,7 +130,6 @@ def monitor_directory(locator=None):
                     # possibly add threads for future                                    #
                     ###################################################################### 
                     ret = load_json_to_elk(locator.client, data)
-                    locator.set_filelocator(filepath, pointer)
                     # if succefully loaded
                     if ret == True:
                         locator.set_filelocator(filepath, pointer)
@@ -148,8 +147,8 @@ def main():
         locator = Locator()
         # option 1 is ELK
         if locator.dest_opt == "1":
-            #locator.client = connect_elk_db()
-            if locator.client == None:
+            locator.client = connect_elk_db()
+            if locator.client != None:
                 monitor_directory(locator)
             else:
                 print("[ERROR] Please choose the option..")
