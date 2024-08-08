@@ -2,9 +2,25 @@
 
 ## Description
 
-This Horang forwarder is a log forwarder to inspect multiple subdirectories within a designated main directory for files. The script should load files with appended data and verify if the files have already been loaded before proceeding to the next file.
+This Horang forwarder is a log forwarder using Python language that inspects multiple subdirectories within a designated leading directory for files. The script will routinely load files and append data to a user-defined database or SIEM. This script is designed to support users in automatically loading data to their SIEMs, forwarding the logs to the next node, or enriching the data with other sources.
 
-     Note: Test Version! Please don't use it for the production environment.
+     Currently, the script supports TSV, CSV, and various types of JSON, enabling the conversion of these formats into a list of JSONs (dictionary) or a singular JSON. 
+     Multiple unit tests have been carried out, and as of now, no issues have been identified. Please do not hesitate to reach out if you encounter any problems. Thank you.
+     
+## Usage
+
+     [USAGE] python3 horang_forwarder.py <directory> [<interval>] [<dest option>]")
+          1. <directory> is madatory. Please define the directory to load data Ex. python3 horang_forwarder.py /nids
+          2. <Interval> is optional. A 10-second Interval is recommended for the data ingestion rate. Ex. python3 horang_forwarder.py <directory> 10
+          3. <dest option> is optional. However, if you choose the destination option, then the interval is mandatory.")
+                Destination option: Only Elastic API using Python is currently available; it is currently under development for other platforms.
+     
+     A designated main directory is the folder with multiple subdirectories and files.
+     The interval is optional. An interval of 10 seconds is recommended for the data ingestion rate.
+
+         python3 logforwarder.py <directory> [<interval>]
+         Ex. python3 horang_forwarder.py /nsm/zeek/
+         Ex. python3 horang_forwarder.py c:\users\myaccount\Desktop\zeek\
 
 ## Continous Integration and Continuos Development (CI/CD Pipeline)  
 
@@ -21,35 +37,23 @@ Testing with Python 3.12, published on 2023-10-02, expires on 2028-10, PEP 693
 
 ## Dependency
 
-     python3 -m pip install
-
-## Usage
-
-A designated main directory is the folder with multiple subdirectories and files.
-The interval is optional. An interval of 10 seconds is recommended for the data ingestion rate.
-
-    python3 logforwarder.py <directory> [<interval>]
-    Ex. python3 horang_forwarder.py /nsm/zeek/
-    Ex. python3 horang_forwarder.py c:\users\myaccount\Desktop\zeek\
+     [required] apt install python3 or download the bianry    # python 3.10 or above
+     [optional] python3 -m pip install        # different SIEM API libaries
+     [optional] pip install elasticsearch     # if you wish to use APIs to post data
+             or python -m pip install elasticsearch
+            API Key Management from Elastic
+            https://www.elastic.co/guide/en/kibana/current/api-keys.html
 
 ## Future
 
-1. Elastic API to load JSONs to the destination Elasticsearch DB
+1. File validation and Data normalization
 
-       Dependency: python -m pip install elasticsearch
-   
-       API Key Management from Elastic
-       https://www.elastic.co/guide/en/kibana/current/api-keys.html
-3. File validation and Data normalization
+        1. remove garbage data
+        2. compressed file (ex. gz) unzip to JSON
+        3. filter out or skip non-loadable data (ex. exe)
+        4. [optional] field normalization - (ex. id.resp_h to dest_ip and ips)
 
-        1. JSON to load
-        2. CSV to JSON to load
-        3. remove garbage data
-        4. compressed file (ex. gz) unzip to JSON
-        5. filter out or skip non-loadable data (ex. exe)
-        6. [optional] field normalization - (ex. id.resp_h to dest_ip and ips)
-
-4. Data Enrichment
+2. Data Enrichment
 
         1. Maxmind DB - ASN and GeoIP
         2. DHCP Host name adding to conn.log
@@ -57,12 +61,14 @@ The interval is optional. An interval of 10 seconds is recommended for the data 
         4. Threat Intel Lookup
         5. More...
 
-6. Features
+3. Features
 
-        1. HTTP Post or CURL
+        1. different SIEM ingestion with APIs
+        2. different Log forwarding (ex. syslog)
+        3. HTTP POST or CURL
              Ex. "curl -X POST "[ELASTIC HOST IP]:9200/?[INDEX]" 
-        2. different SIEM ingestion
-        3. different Log forwarding (ex. syslog)
+        
+
 
 ## License and Copyright
 
