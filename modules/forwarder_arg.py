@@ -43,6 +43,7 @@ class Locator:
         self.filename = ""
         self.root = ""
         self.dirs = []
+        self.connection = False
 
     def set_filepath(self, root, filename):
         """
@@ -115,6 +116,7 @@ def validate_args():
         print("[USAGE] python3 horang_forwarder.py <directory> [<interval>] [<dest option>]")
         print("1. <directory> is madatory")
         print(" Please define the directory to load data")
+        print(" Ex. python3 horang_forwarder.py /nids")
         print("2. <Interval> is optional")
         print(" Interval 10 second is recommeded for data ingestion rate")
         print("3. <dest option> is optional, then but please add the interval")
