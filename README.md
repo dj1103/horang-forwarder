@@ -5,8 +5,7 @@
 
 This Horang forwarder is a log forwarder using Python language that inspects multiple subdirectories within a designated leading directory for files. The script will routinely load files and append data to a user-defined database or SIEM. This script is designed to support users in automatically loading data to their SIEMs, forwarding the logs to the next node, or enriching the data with other sources.
 
-     Currently, the script supports TSV, CSV, and various types of JSON, 
-     enabling the conversion of these formats into a list of JSONs (dictionary) or a singular JSON.
+     Currently, the script supports TSV, CSV, and various types of JSON, enabling the conversion of these formats into a list of JSONs (dictionary) or a singular JSON.
      
      Multiple unit tests have been carried out, and as of now, no issues have been identified. 
      
@@ -17,15 +16,15 @@ This Horang forwarder is a log forwarder using Python language that inspects mul
 A designated main directory is the folder with multiple subdirectories and files.
 The interval is optional. An interval of 10 seconds is by default for the data ingestion rate.
 
-         python3 logforwarder.py <directory> [<interval>]
+    python3 horang_forwarder.py <directory> [<interval>] [<dest option>]
          Ex. python3 horang_forwarder.py /nsm/zeek/
          Ex. python3 horang_forwarder.py c:\users\myaccount\Desktop\zeek\
 
 
      Recommended steps:
-          Note: "pip install elasticsearch" may require for now.
           python3 -m venv .venv       # virtual mapping for Python libraries
           source .venv/bin/activate   # activate the virtual
+               Note: "pip install elasticsearch" may require for now.
 
      [USAGE] python3 horang_forwarder.py <directory> [<interval>] [<dest option>]")
           1. <directory> is madatory. Please define the directory to load data 
