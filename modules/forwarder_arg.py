@@ -59,7 +59,7 @@ class Locator:
         self.root = root
         filepath = os.path.join(root, filename)
         if filepath not in self.fileposition:
-            self.set_index(filename)
+            self.set_index(root, filename)
             self.fileposition[filepath] = 0
         return filepath
 
@@ -81,7 +81,7 @@ class Locator:
             return ""
         return self.fileposition[filepath]
    
-    def set_index(self, index):
+    def set_index(self, root, index):
         try:
             if index.lower().endswith("json") or\
                index.lower().endswith("csv") or\
@@ -92,18 +92,55 @@ class Locator:
                 # unknown will be all default
                 name = re.match(pattern, index).group()
                 if len(name) > 1 and len(name) < 9:
-                    self.index = name.lower().title()
+                    if "suricata" in root:
+                        self.index = "suricata_" + name.lower()
+                    elif "zeek" in root:
+                        self.index = "zeek_" + name.lower()
+                    else: 
+                        self.index = "unknown_" + name.lower()
+                    
                 else:
-                    self.index = "Unknown"
+                    self.index = "unknown"
             else:
-                self.index = "Invalid"          
+                self.index = "invalid"          
         except AttributeError:
-            self.index = "Invalid"
+            self.index = "invalid"
             
     def get_index(self):
         return self.index
 
-
+    def skip_file(self, root, filename):
+        # custom skip for zeek or suricata
+        if filename.lower().endswith(".db") or\
+           filename.lower().endswith(".sh") or\
+           filename.startswith("."):
+            if filepath not in self.fileposition:
+                filepath = os.path.join(root, filename)
+                self.fileposition[filepath] = -1
+            return True
+        elif "zeek" in root:
+              # zeek custom that skip the directory
+              if root.lower().endswith("spool") or\
+                 root.lower().endswith("extract_file") or\
+                 root.lower().endswith("tmp") or\
+                 root.lower().endswith("do-not-touch") or\
+                 filename.lower().startswith("stats"):
+                if filepath not in self.fileposition:
+                    filepath = os.path.join(root, filename)
+                    self.fileposition[filepath] = -1
+                return True
+        elif "suricata" in root:
+            if filename.lower().startswith("stats") or\
+                filename.lower().startswith("suricata") or\
+                filename.lower().startswith("fast"):
+                if filepath not in self.fileposition:
+                    filepath = os.path.join(root, filename)
+                    self.fileposition[filepath] = -1
+                return True
+        else:
+            return False
+        return False
+            
 def validate_args():
     '''
     Argument validation and helper
