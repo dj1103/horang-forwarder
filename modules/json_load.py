@@ -87,7 +87,7 @@ def connect_elk_db():
                             1: HTTPS (TLS/SSL) CA (.crt) file\n\
                             2: HTTPS (TLS/SSL) CA Certificate SHA-256 fingerprints\n : ")
             
-            if ca_option == 1:
+            if ca_option == "1":
                 ca_path = input("Please provide the CA path - HTTPS certification\n\
                                 Ex. the root CA certificate can be found in certs/https_ca.crt\n : ")
                 # default path
@@ -119,7 +119,7 @@ def connect_elk_db():
                 else:
                     # no option - authentication
                     return client
-            if ca_option == 2:
+            elif ca_option == "2":
                 finger_val = input("Please provide the CA Fingerprint\n\
                                  The fingerprint value may come the initialization\n\
                                  or generate it from openssl x509 command\n : ")
