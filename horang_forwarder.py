@@ -91,6 +91,9 @@ def load_data(filepath, pointer):
         return ret_val
 
 
+
+
+
 def monitor_directory(locator=None):
     '''
     os walk to check all files from sub directories to load JSONs to a SIEM
@@ -106,6 +109,10 @@ def monitor_directory(locator=None):
             for root, dirs, files in os.walk(locator.dirlocator):
                 # for loop to iterate each file
                 for file in files:
+                    # file skip function
+                    skip_flag = locator.skip_file(root, file)
+                    if skip_flag == True:
+                        continue
                     filepath = locator.set_filepath(root, file)
                     # format error skip
                     if locator.get_filepointer(filepath) == -1:
