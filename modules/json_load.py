@@ -28,7 +28,7 @@
 # Copyright 2023 Elasticsearch B.V. Licensed under the Apache License, Version 2.0.
 # Driver Code: print(validate_json("{\"id\": \"1\", \"details\": \"1001abc\", \"pages\": \"12\"}"))
 
-from elasticsearch import Elasticsearch as elk_db
+
 import time
 import getpass
 import gc
@@ -56,7 +56,7 @@ def connect_elk_db():
         _obj_: if it's none, then no connection is established
     """
     try:
-
+        from elasticsearch import Elasticsearch as elk_db
         
         client = None
         # connection time out set as 3 seconds
@@ -162,7 +162,7 @@ def connect_elk_db():
         client.info()
         return client
     except Exception as err:
-        print(f'\n[ERROR] Unable to connect to the ELK DB (http://{ip}:{port})\n{err}', \
+        print(f'\n[ERROR] Unable to connect to the ELK DB ({ip}:{port})\n{err}', \
                 flush=True)
         return None
         
@@ -189,6 +189,9 @@ def load_json_to_elk(locator=None, json_val=[]):
     if locator == None or locator.client == None:
         print("[ALERT] No connection to the SIEM...... Please press ctrl-c")
         return False
+    
+    from elasticsearch import Elasticsearch as elk_db
+    
     # one index
     if isinstance(json_val, dict):
         # Elastic REST API
