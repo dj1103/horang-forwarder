@@ -71,6 +71,11 @@ def load_data(filepath, pointer):
             return ret_val
     if DEBUG_FLAG:
         print("### [DEBUG]", filepath, pointer, os.path.getsize(filepath))
+    
+    # file size 0
+    if os.path.getsize(filepath) == 0:
+        return ret_val
+
     # only allows .log, .json, ndjson, .log, .csv 
     if validate_file_json(filepath):
         return read_to_json(filepath, pointer)
@@ -129,7 +134,7 @@ def monitor_directory(locator=None):
                     # Successfully loaded data as JSON, then load the JSON/s to the SIEM #
                     # possibly add threads for future                                    #
                     ###################################################################### 
-                    ret = load_json_to_elk(locator.client, data)
+                    ret = load_json_to_elk(locator, data)
                     # if succefully loaded
                     if ret == True:
                         locator.set_filelocator(filepath, pointer)
