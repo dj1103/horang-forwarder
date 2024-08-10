@@ -110,12 +110,12 @@ class Locator:
         return self.index
 
     def skip_file(self, root, filename):
+        filepath = os.path.join(root, filename)
         # custom skip for zeek or suricata
         if filename.lower().endswith(".db") or\
            filename.lower().endswith(".sh") or\
            filename.startswith("."):
             if filepath not in self.fileposition:
-                filepath = os.path.join(root, filename)
                 self.fileposition[filepath] = -1
             return True
         elif "zeek" in root:
@@ -126,7 +126,6 @@ class Locator:
                  root.lower().endswith("do-not-touch") or\
                  filename.lower().startswith("stats"):
                 if filepath not in self.fileposition:
-                    filepath = os.path.join(root, filename)
                     self.fileposition[filepath] = -1
                 return True
         elif "suricata" in root:
@@ -134,7 +133,6 @@ class Locator:
                 filename.lower().startswith("suricata") or\
                 filename.lower().startswith("fast"):
                 if filepath not in self.fileposition:
-                    filepath = os.path.join(root, filename)
                     self.fileposition[filepath] = -1
                 return True
         else:

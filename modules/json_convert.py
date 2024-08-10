@@ -145,7 +145,7 @@ def read_gz_to_json(filepath, pointer):
         print(f"Error: The file '{filepath}' was not found.")
     except json.JSONDecodeError as err:
         # invalid format.. skip
-        ret_val[1] = -1
+        pass
     except Exception as err:
         print(f'[ERROR] {err} - {filepath} file..')
         ret_val[1] = -1
@@ -239,8 +239,7 @@ def read_to_json(filepath, pointer):
     except FileNotFoundError:
         print(f"[ERROR] The file '{filepath}' was not found.")
     except json.JSONDecodeError as err:
-        print(f'[ERROR] Decode Error {err} - {filepath} file..')
-        ret_val[1] = -1
+        pass
     except Exception as err:
         print(f'[ERROR] {err} - {filepath} file..')
         ret_val[1] = -1
@@ -517,27 +516,27 @@ def reformat_to_json(filepath, pointer):
                 return ret_val
             # pythonic way to load
             for line in file:
-                if line == '\n':
-                    ret_val[1] += 1
+                try:
+                    line_bytes = line.encode('utf-8')
+                    line_length = len(line_bytes)
+                    # Skip empty lines
+                    if not line.strip():
+                        ptr += line_length 
+                        continue
+                    # Skip commented lines
+                    if line.startswith("#"):
+                        ptr += line_length
+                        continue
+                    # json load
+                    line_json = json.loads(line)
+                    data.append(line_json)
+                    ret_val[1] += line_length
+                except json.JSONDecodeError as err:
                     continue
-                # json load
-                line_json = json.loads(line)
-                data.append(line_json)
-                # new line + 1 
-                if line.endswith("\n"):
-                    ret_val[1] += len(line) + 1
-                else:
-                    ret_val[1] += len(line)
     except FileNotFoundError:
         # unknown errors or unable to covert
         print(f"[ERROR] The file '{filepath}' was not found.")
         sys.exit(1)
-    except json.JSONDecodeError as err:
-        print(f'[ERROR] JSON Decode Error - File Name: {filepath}.. {err}\n\
-                # Please check the file format...')
-        # invalid format.. skip
-        ret_val[0] = []
-        ret_val[1] = -1
     except Exception as err:
         print(f'[ERROR]: {err} - {filepath} file..')
         sys.exit(1)
